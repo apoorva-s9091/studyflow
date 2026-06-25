@@ -482,3 +482,453 @@ def get_current_user_profile(current_user: UserInDB = Depends(get_current_user))
         "username": current_user.username,
         "email": current_user.email
     })
+
+
+# ============================================================
+# StudyFlow v2 — Smart Student Features
+# ============================================================
+
+# ── Pydantic Models ──────────────────────────────────────────
+
+class TodoCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    priority: str = "medium"
+    due_date: Optional[date] = None
+    tags: Optional[List[str]] = []
+    list_id: Optional[int] = None
+    xp_reward: int = 10
+
+class TodoUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    priority: Optional[str] = None
+    status: Optional[str] = None
+    due_date: Optional[date] = None
+    tags: Optional[List[str]] = None
+    is_pinned: Optional[bool] = None
+
+class NoteCreate(BaseModel):
+    title: str = "Untitled Note"
+    content: Optional[str] = None
+    color: str = "#FFFFFF"
+    tags: Optional[List[str]] = []
+
+class NoteUpdate(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
+    color: Optional[str] = None
+    is_pinned: Optional[bool] = None
+    tags: Optional[List[str]] = None
+
+class PomodoroCreate(BaseModel):
+    subject: Optional[str] = None
+    duration_minutes: int = 25
+    break_minutes: int = 5
+    total_rounds: int = 4
+    todo_id: Optional[int] = None
+
+class PomodoroUpdate(BaseModel):
+    completed_rounds: Optional[int] = None
+    status: Optional[str] = None
+
+class GoalCreate(BaseModel):
+    title: str
+    target_minutes: int
+
+class GoalUpdate(BaseModel):
+    current_minutes: Optional[int] = None
+    is_active: Optional[bool] = None
+
+
+# ── TODO ENDPOINTS ───────────────────────────────────────────
+
+@app.get("/todos", tags=["Todos"])
+def get_todos(current_user: User = Depends(get_current_user)):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute("""
+        SELECT id, title, description, priority, status, due_date, tags,
+               is_pinned, xp_reward, created_at, completed_at
+        FROM todos
+        WHERE user_id = %s
+        ORDER BY is_pinned DESC,
+                 CASE priority WHEN 'urgent' THEN 1 WHEN 'high' THEN 2
+                               WHEN 'medium' THEN 3 ELSE 4 END,
+                 due_date ASC NULLS LAST,
+                 created_at DESC
+    """, (current_user.id,))
+    rows = cur.fetchall()
+    cur.close(); conn.close()
+    return [dict(r) for r in rows]
+
+@app.post("/todos", status_code=201, tags=["Todos"])
+def create_todo(todo: TodoCreate, current_user: User = Depends(get_current_user)):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    try:
+        cur.execute("""
+            INSERT INTO todos (user_id, list_id, title, description, priority, due_date, tags, xp_reward)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING *
+        """, (current_user.id, todo.list_id, todo.title, todo.description,
+              todo.priority, todo.due_date, todo.tags, todo.xp_reward))
+        new_todo = cur.fetchone()
+        conn.commit()
+        return dict(new_todo)
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close(); conn.close()
+
+@app.patch("/todos/{todo_id}", tags=["Todos"])
+def update_todo(todo_id: int, update: TodoUpdate, current_user: User = Depends(get_current_user)):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    try:
+        cur.execute("SELECT id, status, xp_reward FROM todos WHERE id = %s AND user_id = %s",
+                    (todo_id, current_user.id))
+        existing = cur.fetchone()
+        if not existing:
+            raise HTTPException(status_code=404, detail="Todo not found")
+
+        fields = []
+        values = []
+        update_data = update.model_dump(exclude_none=True)
+
+        if update_data.get("status") == "done" and existing["status"] != "done":
+            fields.append("completed_at = NOW()")
+            cur.execute("UPDATE users SET xp = xp + %s WHERE id = %s",
+                        (existing["xp_reward"], current_user.id))
+        elif update_data.get("status") and update_data["status"] != "done":
+            fields.append("completed_at = NULL")
+
+        for k, v in update_data.items():
+            fields.append(f"{k} = %s")
+            values.append(v)
+
+        if not fields:
+            return dict(existing)
+
+        values.extend([todo_id, current_user.id])
+        cur.execute(
+            f"UPDATE todos SET {', '.join(fields)} WHERE id = %s AND user_id = %s RETURNING *",
+            values
+        )
+        updated = cur.fetchone()
+        conn.commit()
+        return dict(updated)
+    except HTTPException:
+        raise
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close(); conn.close()
+
+@app.delete("/todos/{todo_id}", status_code=204, tags=["Todos"])
+def delete_todo(todo_id: int, current_user: User = Depends(get_current_user)):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM todos WHERE id = %s AND user_id = %s", (todo_id, current_user.id))
+    conn.commit()
+    cur.close(); conn.close()
+
+@app.get("/todos/stats", tags=["Todos"])
+def get_todo_stats(current_user: User = Depends(get_current_user)):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute("""
+        SELECT
+            COUNT(*) FILTER (WHERE status = 'done') AS completed,
+            COUNT(*) FILTER (WHERE status != 'done') AS pending,
+            COUNT(*) FILTER (WHERE due_date = CURRENT_DATE AND status != 'done') AS due_today,
+            COUNT(*) FILTER (WHERE due_date < CURRENT_DATE AND status != 'done') AS overdue,
+            COALESCE(SUM(xp_reward) FILTER (WHERE status = 'done'), 0) AS xp_earned
+        FROM todos WHERE user_id = %s
+    """, (current_user.id,))
+    row = cur.fetchone()
+    cur.close(); conn.close()
+    return dict(row)
+
+
+# ── NOTES ENDPOINTS ──────────────────────────────────────────
+
+@app.get("/notes", tags=["Notes"])
+def get_notes(current_user: User = Depends(get_current_user)):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute("""
+        SELECT id, title, content, color, is_pinned, tags, created_at, updated_at
+        FROM notes WHERE user_id = %s
+        ORDER BY is_pinned DESC, updated_at DESC
+    """, (current_user.id,))
+    rows = cur.fetchall()
+    cur.close(); conn.close()
+    return [dict(r) for r in rows]
+
+@app.post("/notes", status_code=201, tags=["Notes"])
+def create_note(note: NoteCreate, current_user: User = Depends(get_current_user)):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    try:
+        cur.execute("""
+            INSERT INTO notes (user_id, title, content, color, tags)
+            VALUES (%s, %s, %s, %s, %s) RETURNING *
+        """, (current_user.id, note.title, note.content, note.color, note.tags))
+        new_note = cur.fetchone()
+        conn.commit()
+        return dict(new_note)
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close(); conn.close()
+
+@app.patch("/notes/{note_id}", tags=["Notes"])
+def update_note(note_id: int, update: NoteUpdate, current_user: User = Depends(get_current_user)):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    try:
+        update_data = update.model_dump(exclude_none=True)
+        if not update_data:
+            raise HTTPException(status_code=400, detail="No fields to update")
+        update_data["updated_at"] = datetime.utcnow()
+        fields = [f"{k} = %s" for k in update_data.keys()]
+        values = list(update_data.values()) + [note_id, current_user.id]
+        cur.execute(
+            f"UPDATE notes SET {', '.join(fields)} WHERE id = %s AND user_id = %s RETURNING *",
+            values
+        )
+        updated = cur.fetchone()
+        if not updated:
+            raise HTTPException(status_code=404, detail="Note not found")
+        conn.commit()
+        return dict(updated)
+    except HTTPException:
+        raise
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close(); conn.close()
+
+@app.delete("/notes/{note_id}", status_code=204, tags=["Notes"])
+def delete_note(note_id: int, current_user: User = Depends(get_current_user)):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM notes WHERE id = %s AND user_id = %s", (note_id, current_user.id))
+    conn.commit()
+    cur.close(); conn.close()
+
+
+# ── POMODORO ENDPOINTS ───────────────────────────────────────
+
+@app.post("/pomodoro", status_code=201, tags=["Pomodoro"])
+def start_pomodoro(session: PomodoroCreate, current_user: User = Depends(get_current_user)):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    try:
+        cur.execute("""
+            INSERT INTO pomodoro_sessions
+                (user_id, todo_id, subject, duration_minutes, break_minutes, total_rounds)
+            VALUES (%s, %s, %s, %s, %s, %s) RETURNING *
+        """, (current_user.id, session.todo_id, session.subject,
+              session.duration_minutes, session.break_minutes, session.total_rounds))
+        new_session = cur.fetchone()
+        conn.commit()
+        return dict(new_session)
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close(); conn.close()
+
+@app.patch("/pomodoro/{session_id}", tags=["Pomodoro"])
+def update_pomodoro(session_id: int, update: PomodoroUpdate, current_user: User = Depends(get_current_user)):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    try:
+        update_data = update.model_dump(exclude_none=True)
+        if update_data.get("status") in ("completed", "abandoned"):
+            update_data["ended_at"] = datetime.utcnow()
+            if update_data["status"] == "completed":
+                rounds = update_data.get("completed_rounds", 0)
+                xp_gain = rounds * 15
+                if xp_gain > 0:
+                    cur.execute("UPDATE users SET xp = xp + %s WHERE id = %s",
+                                (xp_gain, current_user.id))
+                cur.execute("""
+                    SELECT duration_minutes FROM pomodoro_sessions
+                    WHERE id = %s AND user_id = %s
+                """, (session_id, current_user.id))
+                sess_data = cur.fetchone()
+                if sess_data:
+                    minutes_studied = rounds * sess_data['duration_minutes']
+                    cur.execute("""
+                        UPDATE study_goals
+                        SET current_minutes = current_minutes + %s
+                        WHERE user_id = %s
+                          AND is_active = TRUE
+                          AND week_start = DATE_TRUNC('week', CURRENT_DATE)::DATE
+                    """, (minutes_studied, current_user.id))
+
+        fields = [f"{k} = %s" for k in update_data.keys()]
+        values = list(update_data.values()) + [session_id, current_user.id]
+        cur.execute(
+            f"UPDATE pomodoro_sessions SET {', '.join(fields)} WHERE id = %s AND user_id = %s RETURNING *",
+            values
+        )
+        updated = cur.fetchone()
+        if not updated:
+            raise HTTPException(status_code=404, detail="Session not found")
+        conn.commit()
+        return dict(updated)
+    except HTTPException:
+        raise
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close(); conn.close()
+
+@app.get("/pomodoro/history", tags=["Pomodoro"])
+def get_pomodoro_history(current_user: User = Depends(get_current_user)):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute("""
+        SELECT p.*, t.title AS task_title
+        FROM pomodoro_sessions p
+        LEFT JOIN todos t ON t.id = p.todo_id
+        WHERE p.user_id = %s
+        ORDER BY p.started_at DESC
+        LIMIT 20
+    """, (current_user.id,))
+    rows = cur.fetchall()
+    cur.close(); conn.close()
+    return [dict(r) for r in rows]
+
+
+# ── STUDY GOALS ENDPOINTS ────────────────────────────────────
+
+@app.get("/goals", tags=["Goals"])
+def get_goals(current_user: User = Depends(get_current_user)):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute("""
+        SELECT * FROM study_goals
+        WHERE user_id = %s AND is_active = TRUE
+        ORDER BY created_at DESC
+    """, (current_user.id,))
+    rows = cur.fetchall()
+    cur.close(); conn.close()
+    return [dict(r) for r in rows]
+
+@app.post("/goals", status_code=201, tags=["Goals"])
+def create_goal(goal: GoalCreate, current_user: User = Depends(get_current_user)):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    try:
+        cur.execute("""
+            INSERT INTO study_goals (user_id, title, target_minutes)
+            VALUES (%s, %s, %s) RETURNING *
+        """, (current_user.id, goal.title, goal.target_minutes))
+        new_goal = cur.fetchone()
+        conn.commit()
+        return dict(new_goal)
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close(); conn.close()
+
+@app.patch("/goals/{goal_id}", tags=["Goals"])
+def update_goal(goal_id: int, update: GoalUpdate, current_user: User = Depends(get_current_user)):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    try:
+        update_data = update.model_dump(exclude_none=True)
+        if not update_data:
+            raise HTTPException(status_code=400, detail="No fields to update")
+        fields = [f"{k} = %s" for k in update_data.keys()]
+        values = list(update_data.values()) + [goal_id, current_user.id]
+        cur.execute(
+            f"UPDATE study_goals SET {', '.join(fields)} WHERE id = %s AND user_id = %s RETURNING *",
+            values
+        )
+        updated = cur.fetchone()
+        if not updated:
+            raise HTTPException(status_code=404, detail="Goal not found")
+        conn.commit()
+        return dict(updated)
+    except HTTPException:
+        raise
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close(); conn.close()
+
+
+# ── HUB SUMMARY ENDPOINT ─────────────────────────────────────
+
+@app.get("/hub/summary", tags=["Hub"])
+def get_hub_summary(current_user: User = Depends(get_current_user)):
+    """Single endpoint to load the Hub page — returns todos + notes + goals + pomodoro stats."""
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    cur.execute("""
+        SELECT id, title, priority, status, due_date, is_pinned, xp_reward
+        FROM todos WHERE user_id = %s AND status != 'done'
+        ORDER BY is_pinned DESC,
+                 CASE priority WHEN 'urgent' THEN 1 WHEN 'high' THEN 2
+                               WHEN 'medium' THEN 3 ELSE 4 END,
+                 due_date ASC NULLS LAST
+        LIMIT 10
+    """, (current_user.id,))
+    todos = [dict(r) for r in cur.fetchall()]
+
+    cur.execute("""
+        SELECT COUNT(*) FILTER (WHERE status='done') done,
+               COUNT(*) FILTER (WHERE status!='done') pending,
+               COUNT(*) FILTER (WHERE due_date=CURRENT_DATE AND status!='done') due_today
+        FROM todos WHERE user_id = %s
+    """, (current_user.id,))
+    todo_stats = dict(cur.fetchone())
+
+    cur.execute("""
+        SELECT id, title, color, is_pinned, updated_at
+        FROM notes WHERE user_id = %s
+        ORDER BY is_pinned DESC, updated_at DESC LIMIT 6
+    """, (current_user.id,))
+    notes = [dict(r) for r in cur.fetchall()]
+
+    cur.execute("""
+        SELECT id, title, target_minutes, current_minutes
+        FROM study_goals
+        WHERE user_id = %s AND is_active = TRUE
+          AND week_start = DATE_TRUNC('week', CURRENT_DATE)::DATE
+    """, (current_user.id,))
+    goals = [dict(r) for r in cur.fetchall()]
+
+    cur.execute("""
+        SELECT COUNT(*) AS sessions_this_week,
+               COALESCE(SUM(completed_rounds), 0) AS rounds_this_week,
+               COALESCE(SUM(completed_rounds * duration_minutes), 0) AS minutes_this_week
+        FROM pomodoro_sessions
+        WHERE user_id = %s
+          AND status = 'completed'
+          AND started_at >= DATE_TRUNC('week', CURRENT_TIMESTAMP)
+    """, (current_user.id,))
+    pomodoro_stats = dict(cur.fetchone())
+
+    cur.close(); conn.close()
+    return {
+        "todos": todos,
+        "todo_stats": todo_stats,
+        "notes": notes,
+        "goals": goals,
+        "pomodoro_stats": pomodoro_stats,
+    }
