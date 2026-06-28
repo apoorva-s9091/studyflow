@@ -14,6 +14,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return; // Stop executing the rest of the script
     }
 
+    // --- Populate unified sidebar user chip ---
+    const sbName = document.getElementById('sb-name');
+    const sbAvatar = document.getElementById('sb-avatar');
+    if (sbName) sbName.textContent = username;
+    if (sbAvatar) sbAvatar.textContent = username.charAt(0).toUpperCase();
+
     // --- Element Selections ---
     const usernameDisplay = document.getElementById('username-display');
     const xpCountEl = document.getElementById('xp-count');

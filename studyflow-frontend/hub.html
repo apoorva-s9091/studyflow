@@ -6,7 +6,7 @@
     <title>StudyHub - StudyFlow</title>
     <link rel="stylesheet" href="css/app.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>* { font-family: 'Plus Jakarta Sans', sans-serif !important; } .hub-main { margin-left: 240px; }</style>
+    <style>* { font-family: 'Plus Jakarta Sans', sans-serif !important; }</style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
     <!-- Favicon -->
     <link rel="apple-touch-icon" sizes="180x180" href="./favicon_io/apple-touch-icon.png">
@@ -95,11 +95,10 @@
 
         /* Hub Page Layout */
         .hub-main {
-            flex-grow: 1;
-            max-width: 1200px;
-            width: 100%;
-            margin: 0 auto;
-            padding: var(--spacing-xl);
+            margin-left: 250px;
+            padding: 2rem;
+            min-height: 100vh;
+            box-sizing: border-box;
         }
 
         .tab-panel {
@@ -876,26 +875,56 @@
 </head>
 <body class="app-body">
 
-    <!-- Sticky Header -->
-    <aside style="width:240px;background:#1E1B4B;min-height:100vh;position:fixed;top:0;left:0;display:flex;flex-direction:column;z-index:200;">
-        <a href="home.html" style="padding:24px 20px 20px;display:flex;align-items:center;gap:10px;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:8px;">
-            <div style="width:36px;height:36px;background:#7C3AED;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-size:1rem;flex-shrink:0;"><i class="fas fa-graduation-cap"></i></div>
-            <span style="font-size:1.15rem;font-weight:800;color:white;">StudyFlow</span>
-        </a>
-        <div style="padding:4px 12px;display:flex;flex-direction:column;gap:2px;flex:1;">
-            <a href="home.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:#C4B5FD;font-size:0.88rem;font-weight:600;"><i class="fas fa-home" ></i> Home</a>
-            <a href="hub.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;background:#7C3AED;color:white;font-size:0.88rem;font-weight:600;"><i class="fas fa-th-large" ></i> Hub</a>
-            <a href="hub.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:#C4B5FD;font-size:0.88rem;font-weight:600;"><i class="fas fa-sticky-note" ></i> Notes</a>
-            <a href="profile.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:#C4B5FD;font-size:0.88rem;font-weight:600;"><i class="fas fa-chart-line"></i> Progress</a>
-            <a href="hub.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:#C4B5FD;font-size:0.88rem;font-weight:600;"><i class="fas fa-calendar-alt" ></i> Task Scheduler</a>
-            <a href="profile.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:#C4B5FD;font-size:0.88rem;font-weight:600;"><i class="fas fa-user" ></i> Profile</a>
+    <!-- Sidebar Navigation -->
+    <!-- Unified Sidebar: Version B (hub.html) -->
+    <aside id="sf-sidebar">
+        <!-- scrollable top section -->
+        <div class="sf-sidebar-top">
+            <!-- Logo -->
+            <a href="app.html" class="sf-logo">
+                <span class="sf-logo-icon">📚</span>
+                <span>StudyFlow</span>
+            </a>
+            <!-- Nav -->
+            <nav class="sf-nav">
+                <!-- Home navigates away -->
+                <a class="sf-nav-item" href="app.html">
+                    <i class="fas fa-home"></i> Home
+                </a>
+                <!-- Panel-switching buttons -->
+                <button class="sf-nav-item active" data-panel="hub">
+                    <i class="fas fa-th"></i> Hub
+                </button>
+                <button class="sf-nav-item" data-panel="notes">
+                    <i class="fas fa-sticky-note"></i> Notes
+                </button>
+                <button class="sf-nav-item" data-panel="progress">
+                    <i class="fas fa-chart-line"></i> Progress
+                </button>
+                <button class="sf-nav-item" data-panel="tasks">
+                    <i class="fas fa-calendar-check"></i> Task Scheduler
+                </button>
+                <button class="sf-nav-item" data-panel="pomodoro">
+                    <i class="fas fa-clock"></i> Pomodoro
+                </button>
+                <button class="sf-nav-item" data-panel="goals">
+                    <i class="fas fa-bullseye"></i> Goals
+                </button>
+                <button class="sf-nav-item" data-panel="profile">
+                    <i class="fas fa-user"></i> Profile
+                </button>
+            </nav>
         </div>
-        <div style="padding:12px;border-top:1px solid rgba(255,255,255,0.06);">
-            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;">
-            <div id="sb-avatar" style="width:34px;height:34px;border-radius:50%;background:#7C3AED;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.85rem;">?</div>
-            <div><div id="sb-name" style="font-size:0.85rem;font-weight:700;color:white;">...</div><div style="font-size:0.72rem;color:#C4B5FD;">Student</div></div>
+        <!-- fixed bottom user chip -->
+        <div class="sf-sidebar-bottom">
+            <div class="sf-user-chip">
+                <div id="sb-avatar" class="sf-avatar">?</div>
+                <div>
+                    <div id="sb-name" class="sf-username">...</div>
+                    <div class="sf-role">Student</div>
+                </div>
             </div>
-            <button onclick="logoutUser()" style="width:100%;margin-top:8px;padding:9px 12px;background:#DC2626;color:white;border:none;border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;gap:8px;justify-content:center;">
+            <button onclick="logoutUser()" id="logout-btn" class="sf-logout-btn">
                 <i class="fas fa-sign-out-alt"></i> Logout
             </button>
         </div>
@@ -1075,6 +1104,129 @@
             </div>
             <div class="goals-grid" id="goals-grid-container">
                 <!-- Goal cards dynamically loaded -->
+            </div>
+        </section>
+
+        <!-- PROGRESS PANEL -->
+        <section id="progress-tab" class="tab-panel">
+            <style>
+                .progress-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--spacing-md); margin-bottom: var(--spacing-xl); }
+                .kpi-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); padding: var(--spacing-lg); box-shadow: var(--shadow-md); text-align: center; }
+                .kpi-val { font-size: 2rem; font-weight: 800; color: var(--accent-glow); line-height: 1.1; }
+                .kpi-lbl { font-size: var(--font-size-sm); color: var(--text-secondary); margin-top: 4px; font-weight: 500; }
+                .progress-charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-xl); margin-bottom: var(--spacing-xl); }
+                .chart-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); padding: var(--spacing-xl); box-shadow: var(--shadow-md); }
+                .chart-card h3 { font-size: var(--font-size-lg); font-weight: 700; color: var(--text-primary); margin: 0 0 var(--spacing-lg); }
+                .bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 160px; }
+                .bar-group { display: flex; flex-direction: column; align-items: center; flex: 1; gap: 4px; height: 100%; justify-content: flex-end; }
+                .bar { width: 100%; border-radius: 6px 6px 0 0; min-height: 4px; transition: height 0.5s ease; }
+                .bar.tasks-bar { background: linear-gradient(180deg, #7C3AED, #6366F1); }
+                .bar.pomo-bar { background: linear-gradient(180deg, #F59E0B, #F97316); }
+                .bar-lbl { font-size: 0.7rem; color: var(--text-secondary); font-weight: 600; }
+                .bar-val { font-size: 0.7rem; color: var(--text-placeholder); }
+                .goals-progress-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); padding: var(--spacing-xl); box-shadow: var(--shadow-md); }
+                .goals-progress-card h3 { font-size: var(--font-size-lg); font-weight: 700; color: var(--text-primary); margin: 0 0 var(--spacing-lg); }
+                @media (max-width: 768px) { .progress-kpi-grid { grid-template-columns: repeat(2, 1fr); } .progress-charts-row { grid-template-columns: 1fr; } }
+            </style>
+
+            <!-- KPI Cards -->
+            <div class="progress-kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-val" id="prog-xp">0</div>
+                    <div class="kpi-lbl">⭐ Total XP</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-val" id="prog-streak">0</div>
+                    <div class="kpi-lbl">🔥 Day Streak</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-val" id="prog-tasks-done">0</div>
+                    <div class="kpi-lbl">✅ Tasks Done</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-val" id="prog-pomo-mins">0m</div>
+                    <div class="kpi-lbl">⏱ Focus Time (week)</div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="progress-charts-row">
+                <div class="chart-card">
+                    <h3><i class="fas fa-check-double" style="color:var(--accent-glow);margin-right:8px;"></i>Tasks Completed (7 days)</h3>
+                    <div class="bar-chart" id="tasks-bar-chart"></div>
+                </div>
+                <div class="chart-card">
+                    <h3><i class="fas fa-brain" style="color:var(--accent-orange);margin-right:8px;"></i>Study Minutes (7 days)</h3>
+                    <div class="bar-chart" id="pomo-bar-chart"></div>
+                </div>
+            </div>
+
+            <!-- Weekly Goals Progress -->
+            <div class="goals-progress-card" id="progress-goals-section">
+                <h3><i class="fas fa-bullseye" style="color:var(--accent-glow);margin-right:8px;"></i>Weekly Study Goals</h3>
+                <div id="progress-goals-list"></div>
+            </div>
+        </section>
+
+        <!-- TASK SCHEDULER PANEL -->
+        <section id="scheduler-tab" class="tab-panel">
+            <style>
+                .scheduler-grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: var(--spacing-xl); align-items: start; }
+                .scheduler-form-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); padding: var(--spacing-xl); box-shadow: var(--shadow-md); }
+                .scheduler-form-card h2 { font-size: var(--font-size-xl); font-weight: 800; color: var(--text-primary); margin: 0 0 4px; }
+                .scheduler-form-card p.sub { font-size: var(--font-size-sm); color: var(--text-secondary); margin: 0 0 var(--spacing-lg); }
+                .scheduler-results-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); padding: var(--spacing-xl); box-shadow: var(--shadow-md); }
+                .scheduler-results-card h3 { font-size: var(--font-size-lg); font-weight: 700; color: var(--text-primary); margin: 0 0 var(--spacing-lg); }
+                .plan-task-item { background: var(--bg-dark); border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: var(--spacing-md); display: flex; align-items: center; gap: var(--spacing-md); margin-bottom: var(--spacing-sm); }
+                .plan-task-icon { width: 40px; height: 40px; border-radius: var(--border-radius-md); background: rgba(124,58,237,0.1); color: var(--accent-glow); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+                .plan-task-info { flex-grow: 1; }
+                .plan-task-title { font-weight: 700; color: var(--text-primary); font-size: var(--font-size-sm); }
+                .plan-task-meta { font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px; }
+                .plan-empty { text-align: center; color: var(--text-secondary); padding: var(--spacing-xl) 0; }
+                .plan-empty i { font-size: 2.5rem; color: var(--text-placeholder); display: block; margin-bottom: var(--spacing-md); }
+                .subjects-tag-input { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); background: var(--bg-dark); min-height: 42px; cursor: text; }
+                .subject-tag { background: rgba(124,58,237,0.15); color: var(--accent-glow); border-radius: var(--border-radius-pill); padding: 2px 10px; font-size: 0.78rem; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+                .subject-tag button { background: none; border: none; cursor: pointer; color: var(--accent-glow); padding: 0; font-size: 0.8rem; line-height: 1; }
+                .subjects-tag-input input { border: none; background: transparent; outline: none; font-family: inherit; font-size: var(--font-size-sm); color: var(--text-primary); flex: 1; min-width: 120px; }
+                @media (max-width: 900px) { .scheduler-grid { grid-template-columns: 1fr; } }
+            </style>
+
+            <div class="scheduler-grid">
+                <div class="scheduler-form-card">
+                    <h2>🤖 AI Daily Planner</h2>
+                    <p class="sub">Tell the AI how much time you have and it will build a study plan & create tasks for you.</p>
+
+                    <div class="form-group">
+                        <label for="sched-minutes">Available time today (minutes)</label>
+                        <input type="number" id="sched-minutes" value="60" min="15" max="480" placeholder="e.g. 90">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Subjects to cover</label>
+                        <div class="subjects-tag-input" id="subjects-tag-input" onclick="document.getElementById('subject-tag-raw').focus()">
+                            <input type="text" id="subject-tag-raw" placeholder="Type subject & press Enter..." onkeydown="handleSubjectTagInput(event)">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sched-priority">Priority subject (optional)</label>
+                        <input type="text" id="sched-priority" placeholder="e.g. Mathematics">
+                    </div>
+
+                    <button class="btn btn-primary" style="width:100%;" onclick="runAIPlanner()" id="run-planner-btn">
+                        <i class="fas fa-magic"></i> Generate Study Plan
+                    </button>
+                </div>
+
+                <div class="scheduler-results-card">
+                    <h3><i class="fas fa-list-alt"></i> Generated Plan</h3>
+                    <div id="planner-results">
+                        <div class="plan-empty">
+                            <i class="fas fa-robot"></i>
+                            Fill in your details and click <strong>Generate Study Plan</strong> to get started.
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
     </main>
@@ -1419,8 +1571,50 @@
                 });
             });
 
-            // Load initial tab data
-            loadTodos();
+            // Wire the new unified sidebar data-panel buttons
+            const panelMap = {
+                hub:      'todos-tab',
+                notes:    'notes-tab',
+                progress: 'progress-tab',
+                tasks:    'scheduler-tab',
+                pomodoro: 'pomodoro-tab',
+                goals:    'goals-tab',
+                profile:  'profile-tab'
+            };
+
+            function activateSidebarBtn(panelKey) {
+                document.querySelectorAll('.sf-nav-item[data-panel]').forEach(btn => {
+                    const isActive = btn.dataset.panel === panelKey;
+                    btn.style.background = isActive ? '#7C3AED' : 'transparent';
+                    btn.style.color = isActive ? '#fff' : 'rgba(255,255,255,0.55)';
+                    btn.style.fontWeight = isActive ? '600' : '500';
+                });
+            }
+
+            document.querySelectorAll('.sf-nav-item[data-panel]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const panelKey = btn.dataset.panel;
+                    const panelId = panelMap[panelKey];
+                    if (!panelId) return;
+                    activateSidebarBtn(panelKey);
+                    // Re-use existing switchSidebarTab which handles panel show/hide + data loading
+                    switchSidebarTab(panelId, null);
+                    // Update URL hash without page reload
+                    history.replaceState(null, '', '#' + panelKey);
+                });
+            });
+
+            // Hash-based panel routing on load (e.g. arriving from hub.html#pomodoro)
+            const hash = window.location.hash.replace('#', '');
+            const validHashes = Object.keys(panelMap);
+            if (hash && validHashes.includes(hash)) {
+                activateSidebarBtn(hash);
+                switchSidebarTab(panelMap[hash], null);
+            } else {
+                // Default: Hub (todos) panel
+                activateSidebarBtn('hub');
+                loadTodos();
+            }
         });
 
 
@@ -2195,6 +2389,212 @@
                 loadGoals();
             } catch (err) {
                 console.error("Failed to deactivate goal", err);
+            }
+        }
+
+
+        // ============================================================
+        // SIDEBAR NAVIGATION — switches panels without page reload
+        // ============================================================
+        function switchSidebarTab(panelId, clickedLink) {
+            // Deactivate all panels
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            const targetPanel = document.getElementById(panelId);
+            if (targetPanel) targetPanel.classList.add('active');
+
+            // Update sidebar link highlight
+            document.querySelectorAll('.sb-nav-link').forEach(a => {
+                a.style.background = 'transparent';
+                a.style.color = '#C4B5FD';
+            });
+            if (clickedLink) {
+                clickedLink.style.background = '#7C3AED';
+                clickedLink.style.color = 'white';
+            }
+
+            // Also sync header tabs if present
+            document.querySelectorAll('.header-tabs .tab-btn').forEach(t => t.classList.remove('active'));
+            const matchingHeaderTab = document.querySelector(`.tab-btn[data-tab="${panelId}"]`);
+            if (matchingHeaderTab) matchingHeaderTab.classList.add('active');
+
+            // Trigger data loading for the panel
+            if (panelId === 'todos-tab') loadTodos();
+            else if (panelId === 'notes-tab') loadNotes();
+            else if (panelId === 'pomodoro-tab') loadPomodoroTab();
+            else if (panelId === 'goals-tab') loadGoals();
+            else if (panelId === 'progress-tab') loadProgressPanel();
+            else if (panelId === 'scheduler-tab') initSchedulerPanel();
+        }
+
+
+        // ============================================================
+        // MODULE 5: PROGRESS DASHBOARD
+        // ============================================================
+        async function loadProgressPanel() {
+            try {
+                const data = await apiRequest('/progress/weekly');
+                if (!data) return;
+
+                // KPI cards
+                document.getElementById('prog-xp').textContent = data.xp || 0;
+                document.getElementById('prog-streak').textContent = (data.streak_count || 0) + ' days';
+                document.getElementById('prog-tasks-done').textContent = data.task_totals?.total_completed || 0;
+                document.getElementById('prog-pomo-mins').textContent = (data.pomo_totals?.pomo_minutes || 0) + 'm';
+
+                // Bar charts
+                renderBarChart('tasks-bar-chart', data.tasks_per_day || [], 'tasks_done', 'tasks-bar');
+                renderBarChart('pomo-bar-chart', data.minutes_per_day || [], 'minutes_studied', 'pomo-bar');
+
+                // Goals progress
+                renderProgressGoals(data.goals || []);
+            } catch (err) {
+                console.error('Failed to load progress', err);
+            }
+        }
+
+        function renderBarChart(containerId, data, valueKey, barClass) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            if (data.length === 0) {
+                container.innerHTML = '<div style="width:100%;text-align:center;color:var(--text-secondary);font-size:0.85rem;padding-top:40px;">No data for the past 7 days.</div>';
+                return;
+            }
+
+            const maxVal = Math.max(...data.map(d => Number(d[valueKey]) || 0), 1);
+
+            data.forEach(item => {
+                const val = Number(item[valueKey]) || 0;
+                const heightPct = Math.round((val / maxVal) * 100);
+                const group = document.createElement('div');
+                group.className = 'bar-group';
+                group.innerHTML = `
+                    <span class="bar-val">${val}</span>
+                    <div class="bar ${barClass}" style="height: ${heightPct}%;"></div>
+                    <span class="bar-lbl">${escapeHTML(item.day_label)}</span>
+                `;
+                container.appendChild(group);
+            });
+        }
+
+        function renderProgressGoals(goals) {
+            const container = document.getElementById('progress-goals-list');
+            if (goals.length === 0) {
+                container.innerHTML = '<p style="color:var(--text-secondary);font-size:var(--font-size-sm);">No active weekly goals. Go to Goals to set one!</p>';
+                return;
+            }
+            container.innerHTML = goals.map(g => {
+                const pct = Math.min(Math.round((g.current_minutes / g.target_minutes) * 100), 100) || 0;
+                const curH = (g.current_minutes / 60).toFixed(1);
+                const tgtH = (g.target_minutes / 60).toFixed(1);
+                return `
+                    <div style="margin-bottom:var(--spacing-lg);">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                            <span style="font-weight:600;color:var(--text-primary);font-size:var(--font-size-sm);">${escapeHTML(g.title)}</span>
+                            <span style="font-weight:700;color:var(--accent-glow);">${pct}%</span>
+                        </div>
+                        <div style="height:10px;background:var(--border-color);border-radius:var(--border-radius-pill);overflow:hidden;">
+                            <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--accent-glow),var(--accent-cyan));border-radius:var(--border-radius-pill);"></div>
+                        </div>
+                        <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:4px;">${curH}h / ${tgtH}h this week</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+
+        // ============================================================
+        // MODULE 6: AI TASK SCHEDULER
+        // ============================================================
+        let schedulerSubjects = [];
+
+        function initSchedulerPanel() {
+            // Subjects are already managed via tags, nothing to preload
+        }
+
+        function handleSubjectTagInput(event) {
+            if (event.key === 'Enter' || event.key === ',') {
+                event.preventDefault();
+                const input = document.getElementById('subject-tag-raw');
+                const val = input.value.trim().replace(',', '');
+                if (val && !schedulerSubjects.includes(val)) {
+                    schedulerSubjects.push(val);
+                    renderSubjectTags();
+                }
+                input.value = '';
+            }
+        }
+
+        function removeSubjectTag(subject) {
+            schedulerSubjects = schedulerSubjects.filter(s => s !== subject);
+            renderSubjectTags();
+        }
+
+        function renderSubjectTags() {
+            const container = document.getElementById('subjects-tag-input');
+            const rawInput = document.getElementById('subject-tag-raw');
+            // Remove all existing tags (preserve the input)
+            container.querySelectorAll('.subject-tag').forEach(t => t.remove());
+
+            schedulerSubjects.forEach(subj => {
+                const tag = document.createElement('span');
+                tag.className = 'subject-tag';
+                tag.innerHTML = `${escapeHTML(subj)} <button onclick="removeSubjectTag('${escapeHTML(subj)}')">×</button>`;
+                container.insertBefore(tag, rawInput);
+            });
+        }
+
+        async function runAIPlanner() {
+            const btn = document.getElementById('run-planner-btn');
+            const minutes = parseInt(document.getElementById('sched-minutes').value) || 60;
+            const priorityArea = document.getElementById('sched-priority').value.trim();
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+
+            try {
+                const result = await apiRequest('/ai/daily-plan', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        subjects: schedulerSubjects,
+                        available_minutes: minutes,
+                        priority_area: priorityArea || null
+                    })
+                });
+
+                if (!result) return;
+
+                const container = document.getElementById('planner-results');
+                if (!result.tasks_created || result.tasks_created.length === 0) {
+                    container.innerHTML = `
+                        <div class="plan-empty">
+                            <i class="fas fa-check-circle" style="color:var(--success-color);"></i>
+                            All suggested tasks already exist in your task list!
+                        </div>`;
+                } else {
+                    const priorityColors = { urgent: '#EF4444', high: '#F59E0B', medium: '#6366F1', low: '#16A34A' };
+                    container.innerHTML = `
+                        <div style="background:rgba(22,163,74,0.08);border:1px solid rgba(22,163,74,0.2);border-radius:var(--border-radius-md);padding:var(--spacing-md);margin-bottom:var(--spacing-lg);">
+                            <p style="color:var(--success-color);font-weight:600;margin:0;font-size:var(--font-size-sm);"><i class="fas fa-check-circle"></i> ${escapeHTML(result.plan_summary)}</p>
+                        </div>
+                        ${result.tasks_created.map(t => `
+                            <div class="plan-task-item">
+                                <div class="plan-task-icon"><i class="fas fa-book-open"></i></div>
+                                <div class="plan-task-info">
+                                    <div class="plan-task-title">${escapeHTML(t.title)}</div>
+                                    <div class="plan-task-meta"><span style="color:${priorityColors[t.priority] || '#6366F1'};font-weight:600;">${escapeHTML(t.priority)}</span> • +${t.xp_reward} XP</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                        <p style="font-size:var(--font-size-sm);color:var(--text-secondary);margin-top:var(--spacing-md);">Tasks have been added to your Hub → Todo list. ✅</p>
+                    `;
+                }
+                showToast(result.plan_summary, 'success');
+            } catch (err) {
+                console.error('AI Planner failed', err);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-magic"></i> Generate Study Plan';
             }
         }
     </script>

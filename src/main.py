@@ -1027,3 +1027,216 @@ def get_subjects(current_user: User = Depends(get_current_user)):
     finally:
         cur.close()
         conn.close()
+
+
+# ============================================================
+# StudyFlow v2 — Profile, Progress, AI Planner
+# ============================================================
+
+class ProfileUpdate(BaseModel):
+    display_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    college_name: Optional[str] = None
+    degree: Optional[str] = None
+    study_year: Optional[str] = None
+    branch: Optional[str] = None
+    daily_minutes: Optional[int] = None
+
+
+@app.put("/users/me", tags=["Learner"])
+def update_current_user_profile(update: ProfileUpdate, current_user: User = Depends(get_current_user)):
+    """Update mutable profile fields for the authenticated user."""
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    try:
+        update_data = update.model_dump(exclude_none=True)
+        if not update_data:
+            raise HTTPException(status_code=400, detail="No fields to update.")
+        fields = [f"{k} = %s" for k in update_data.keys()]
+        values = list(update_data.values()) + [current_user.id]
+        cur.execute(
+            f"UPDATE users SET {', '.join(fields)} WHERE id = %s RETURNING id, username, email, xp",
+            values
+        )
+        updated = cur.fetchone()
+        if not updated:
+            raise HTTPException(status_code=404, detail="User not found.")
+        conn.commit()
+        return dict(updated)
+    except HTTPException:
+        raise
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close()
+        conn.close()
+
+
+@app.get("/progress/weekly", tags=["Progress"])
+def get_weekly_progress(current_user: User = Depends(get_current_user)):
+    """Return a week-by-week progress summary: tasks completed, pomodoro minutes, XP, streaks."""
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    try:
+        # Tasks completed per day (last 7 days)
+        cur.execute("""
+            SELECT
+                TO_CHAR(completed_at::date, 'Dy') AS day_label,
+                COUNT(*) AS tasks_done
+            FROM todos
+            WHERE user_id = %s
+              AND status = 'done'
+              AND completed_at >= NOW() - INTERVAL '7 days'
+            GROUP BY completed_at::date, day_label
+            ORDER BY completed_at::date ASC
+        """, (current_user.id,))
+        tasks_per_day = [dict(r) for r in cur.fetchall()]
+
+        # Pomodoro minutes per day (last 7 days)
+        cur.execute("""
+            SELECT
+                TO_CHAR(started_at::date, 'Dy') AS day_label,
+                COALESCE(SUM(completed_rounds * duration_minutes), 0) AS minutes_studied
+            FROM pomodoro_sessions
+            WHERE user_id = %s
+              AND status = 'completed'
+              AND started_at >= NOW() - INTERVAL '7 days'
+            GROUP BY started_at::date, day_label
+            ORDER BY started_at::date ASC
+        """, (current_user.id,))
+        minutes_per_day = [dict(r) for r in cur.fetchall()]
+
+        # Overall totals
+        cur.execute("""
+            SELECT
+                COUNT(*) FILTER (WHERE status = 'done') AS total_completed,
+                COUNT(*) FILTER (WHERE status != 'done') AS total_pending,
+                COALESCE(SUM(xp_reward) FILTER (WHERE status = 'done'), 0) AS total_xp_tasks
+            FROM todos WHERE user_id = %s
+        """, (current_user.id,))
+        task_totals = dict(cur.fetchone())
+
+        # Pomodoro totals this week
+        cur.execute("""
+            SELECT
+                COUNT(*) AS pomo_sessions,
+                COALESCE(SUM(completed_rounds), 0) AS pomo_rounds,
+                COALESCE(SUM(completed_rounds * duration_minutes), 0) AS pomo_minutes
+            FROM pomodoro_sessions
+            WHERE user_id = %s
+              AND status = 'completed'
+              AND started_at >= DATE_TRUNC('week', CURRENT_TIMESTAMP)
+        """, (current_user.id,))
+        pomo_totals = dict(cur.fetchone())
+
+        # User XP and streak
+        cur.execute("SELECT xp, streak_count FROM users WHERE id = %s", (current_user.id,))
+        user_row = dict(cur.fetchone())
+
+        # Active weekly goals
+        cur.execute("""
+            SELECT title, target_minutes, current_minutes
+            FROM study_goals
+            WHERE user_id = %s AND is_active = TRUE
+              AND week_start = DATE_TRUNC('week', CURRENT_DATE)::DATE
+            ORDER BY created_at DESC
+        """, (current_user.id,))
+        goals = [dict(r) for r in cur.fetchall()]
+
+        return {
+            "tasks_per_day": tasks_per_day,
+            "minutes_per_day": minutes_per_day,
+            "task_totals": task_totals,
+            "pomo_totals": pomo_totals,
+            "xp": user_row.get("xp", 0),
+            "streak_count": user_row.get("streak_count", 0),
+            "goals": goals,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close()
+        conn.close()
+
+
+class AIDailyPlanRequest(BaseModel):
+    subjects: Optional[List[str]] = []
+    available_minutes: int = 60
+    priority_area: Optional[str] = None
+
+
+@app.post("/ai/daily-plan", tags=["AI"])
+def generate_daily_plan(req: AIDailyPlanRequest, current_user: User = Depends(get_current_user)):
+    """Generate a structured daily study plan and create todos for the user."""
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    try:
+        subjects = req.subjects or []
+        available_minutes = max(15, req.available_minutes)
+        priority_area = req.priority_area or ""
+
+        # Fetch existing pending todos to avoid duplication
+        cur.execute(
+            "SELECT title FROM todos WHERE user_id = %s AND status != 'done'",
+            (current_user.id,)
+        )
+        existing_titles = {r["title"].lower() for r in cur.fetchall()}
+
+        # Build a deterministic plan based on available time and subjects
+        tasks = []
+        time_blocks = []
+
+        if available_minutes >= 120:
+            # Long session: 3 subjects, review + practice + break
+            session_subjects = (subjects + ["General Study"])[:3]
+            block_size = available_minutes // len(session_subjects)
+            for s in session_subjects:
+                time_blocks.append((s, block_size))
+        elif available_minutes >= 60:
+            session_subjects = (subjects + ["General Study"])[:2]
+            block_size = available_minutes // len(session_subjects)
+            for s in session_subjects:
+                time_blocks.append((s, block_size))
+        else:
+            sub = (subjects[0] if subjects else "General Study")
+            time_blocks.append((sub, available_minutes))
+
+        priorities = ["high", "medium", "low"]
+        created_todos = []
+
+        for i, (subject, duration) in enumerate(time_blocks):
+            title = f"Study {subject} — {duration} min session"
+            if priority_area and priority_area.lower() in subject.lower():
+                priority = "urgent"
+            else:
+                priority = priorities[i % len(priorities)]
+
+            if title.lower() not in existing_titles:
+                xp_reward = max(10, duration // 5)
+                cur.execute("""
+                    INSERT INTO todos (user_id, title, description, priority, xp_reward, tags)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                    RETURNING id, title, priority, xp_reward
+                """, (
+                    current_user.id,
+                    title,
+                    f"AI-planned {duration}-minute study block for {subject}.",
+                    priority,
+                    xp_reward,
+                    [subject, "ai-plan"]
+                ))
+                new_todo = dict(cur.fetchone())
+                created_todos.append(new_todo)
+
+        conn.commit()
+        return {
+            "plan_summary": f"Created {len(created_todos)} study tasks for {available_minutes} minutes of study.",
+            "tasks_created": created_todos
+        }
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close()
+        conn.close()

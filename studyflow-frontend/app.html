@@ -9,7 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
     * { font-family: 'Plus Jakarta Sans', sans-serif !important; }
-    .app-main { margin-left: 240px; }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
     <!-- Favicon -->
@@ -377,12 +376,6 @@
           z-index: 10000;
         }
 
-        @keyframes ob-fall {
-          0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
-          100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-        }
-
-        /* Mobile */
         @media (max-width: 600px) {
           #ob-modal {
             width: 100%;
@@ -404,79 +397,93 @@
 </head>
 
 <body class="app-body">
-    <!-- V5 Floating Navigation -->
-    <aside style="width:240px;background:#1E1B4B;min-height:100vh;position:fixed;top:0;left:0;display:flex;flex-direction:column;z-index:200;">
-        <a href="home.html" style="padding:24px 20px 20px;display:flex;align-items:center;gap:10px;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:8px;">
-            <div style="width:36px;height:36px;background:#7C3AED;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-size:1rem;flex-shrink:0;"><i class="fas fa-graduation-cap"></i></div>
-            <span style="font-size:1.15rem;font-weight:800;color:white;">StudyFlow</span>
-        </a>
-        <div style="padding:4px 12px;display:flex;flex-direction:column;gap:2px;flex:1;">
-            <a href="home.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:#C4B5FD;font-size:0.88rem;font-weight:600;"><i class="fas fa-home" style="width:18px;"></i> Home</a>
-            <a href="hub.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:#C4B5FD;font-size:0.88rem;font-weight:600;"><i class="fas fa-th-large" style="width:18px;"></i> Hub</a>
-            <a href="hub.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:#C4B5FD;font-size:0.88rem;font-weight:600;"><i class="fas fa-sticky-note" style="width:18px;"></i> Notes</a>
-            <a href="profile.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:#C4B5FD;font-size:0.88rem;font-weight:600;"><i class="fas fa-chart-line" style="width:18px;"></i> Progress</a>
-            <a href="hub.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:#C4B5FD;font-size:0.88rem;font-weight:600;"><i class="fas fa-calendar-alt" style="width:18px;"></i> Task Scheduler</a>
-            <a href="profile.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:#C4B5FD;font-size:0.88rem;font-weight:600;"><i class="fas fa-user" style="width:18px;"></i> Profile</a>       
-        </div>
-        <div style="padding:12px;border-top:1px solid rgba(255,255,255,0.06);">
-            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;">
-            <div id="sb-avatar" style="width:34px;height:34px;border-radius:50%;background:#7C3AED;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.85rem;">?</div>
-            <div><div id="sb-name" style="font-size:0.85rem;font-weight:700;color:white;">...</div><div style="font-size:0.72rem;color:#C4B5FD;">Student</div></div>
+
+    <!-- TOP BAR (replaces old navbar-container) -->
+    <header class="app-topbar">
+        <a href="index.html" class="app-topbar-logo">📚 StudyFlow</a>
+        <div class="app-topbar-right">
+            <div class="stat-chip-streak">
+                🔥 <span id="topbar-streak">0</span> day streak
             </div>
-            <button id="logout-btn" style="width:100%;margin-top:8px;padding:9px 12px;background:#DC2626;color:white;border:none;border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;gap:8px;justify-content:center;">
-                <i class="fas fa-sign-out-alt"></i> Logout
+            <div class="stat-chip-xp">
+                ⭐ <span id="topbar-xp">0</span> XP
+            </div>
+            <a href="hub.html" class="btn btn-outline-v5">
+                <i class="fas fa-th"></i><span class="btn-text">Hub</span>
+            </a>
+            <a href="profile.html" class="btn btn-outline-v5">
+                <i class="fas fa-user"></i><span class="btn-text">Profile</span>
+            </a>
+            <button id="logout-btn" class="btn btn-outline-v5">
+                <i class="fas fa-sign-out-alt"></i>
+                <span class="btn-text">Logout</span>
             </button>
         </div>
-    </aside>
+    </header>
 
     <!-- Main Content -->
     <main class="app-main">
         <!-- Dashboard View -->
         <div id="dashboard-view" class="view active">
-            <div class="dashboard-header">
-                <div class="user-greeting">
-                    <h2>Hey <span id="username-display">Learner</span>!</h2>
-                    <p>Ready to crush it today?</p>
-                </div>
+            <!-- Greeting -->
+            <div class="app-greeting">
+                <h1>
+                    <span id="time-greeting">Good morning</span>,
+                    <span id="username-display">Learner</span>! ☀️
+                </h1>
+                <p>Let's make today count.</p>
             </div>
 
             <div class="dashboard-grid">
+                <!-- LEFT: Quest Card -->
                 <div class="quest-card card-v5">
-                    <div class="quest-header">
-                        <h3 id="quest-title">Today's Study Session</h3>
-                    </div>
-                    <div class="quest-content" id="quest-content">
-                        <div class="quest-placeholder"><i class="fas fa-spinner fa-spin"></i>
+                    <div class="quest-label">Today's Quest</div>
+                    <h3 id="quest-title">Loading...</h3>
+                    <div id="quest-content">
+                        <div class="quest-placeholder">
+                            <i class="fas fa-spinner fa-spin"></i>
                             <h4>Loading your session...</h4>
                         </div>
                     </div>
                     <div class="quest-actions">
                         <button id="next-question-btn" class="btn btn-primary btn-large">
-                            <i class="fas fa-arrow-right"></i>Continue Session
+                            <i class="fas fa-play"></i> Start Session
                         </button>
                     </div>
                 </div>
 
+                <!-- RIGHT: Side Panel -->
                 <div class="side-panel">
+                    <!-- Stats Card -->
                     <div class="progress-card card-v5">
                         <h3>Your Stats</h3>
                         <div class="user-stats-app">
-                            <div class="stat-item"><i class="fas fa-star"></i>
-                                <div class="stat-info"><span class="stat-value" id="xp-count">0</span><span
-                                        class="stat-label">Total XP</span></div>
+                            <div class="stat-item">
+                                <div class="stat-item-left">
+                                    <i class="fas fa-star"></i> Total XP
+                                </div>
+                                <div class="stat-info">
+                                    <span class="stat-value" id="xp-count">0</span>
+                                </div>
                             </div>
-                            <div class="stat-item"><i class="fas fa-fire"></i>
-                                <div class="stat-info"><span class="stat-value" id="streak-count">0</span><span
-                                        class="stat-label">Day Streak</span></div>
+                            <div class="stat-item">
+                                <div class="stat-item-left">
+                                    <i class="fas fa-fire"></i> Day Streak
+                                </div>
+                                <div class="stat-info">
+                                    <span class="stat-value" id="streak-count">0</span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
+                    <!-- Achievements Card -->
                     <div class="achievements-card card-v5">
-                        <h3>Recent Achievements</h3>
+                        <h3>🏆 Achievements</h3>
                         <div class="achievements-list" id="achievements-list">
-                            <div class="achievement-placeholder"><i class="fas fa-bullseye"></i>
-                                <p>Complete sessions to unlock achievements!</p>
+                            <div class="achievement-placeholder">
+                                <i class="fas fa-trophy"></i>
+                                <p>Answer questions to unlock achievements!</p>
                             </div>
                         </div>
                     </div>
@@ -562,7 +569,9 @@
             <h2 id="celebration-title">Goal Reached! 🎯</h2>
             <p id="celebration-message">You earned <span id="xp-earned">+10</span> XP!</p>
         </div>
-    </div>    <!-- ONBOARDING MODAL -->
+    </div>
+
+    <!-- ONBOARDING MODAL -->
     <div id="ob-overlay">
       <div id="ob-modal">
 
@@ -873,6 +882,42 @@
     </div>
     
     <script src="js/app.js"></script>
+
+    <!-- Time-based greeting and sync -->
+    <script>
+    (function() {
+        // Time greeting
+        const hour = new Date().getHours();
+        const el = document.getElementById('time-greeting');
+        if (el) {
+            if (hour >= 5 && hour < 12) el.textContent = 'Good morning';
+            else if (hour >= 12 && hour < 17) el.textContent = 'Good afternoon';
+            else el.textContent = 'Good evening';
+        }
+
+        // Sync top bar chips from stat card values
+        // Uses MutationObserver to detect when JS updates the values
+        const xpMain = document.getElementById('xp-count');
+        const streakMain = document.getElementById('streak-count');
+        const xpTop = document.getElementById('topbar-xp');
+        const streakTop = document.getElementById('topbar-streak');
+
+        if (xpMain && xpTop) {
+            new MutationObserver(() => {
+                xpTop.textContent = xpMain.textContent;
+            }).observe(xpMain, { childList: true, characterData: true, subtree: true });
+            // Initial sync
+            xpTop.textContent = xpMain.textContent;
+        }
+        if (streakMain && streakTop) {
+            new MutationObserver(() => {
+                streakTop.textContent = streakMain.textContent;
+            }).observe(streakMain, { childList: true, characterData: true, subtree: true });
+            // Initial sync
+            streakTop.textContent = streakMain.textContent;
+        }
+    })();
+    </script>
 </body>
 
 </html>
