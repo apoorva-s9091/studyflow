@@ -155,12 +155,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // Check URL param to auto-switch to signup
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('mode') === 'signup') {
-        switchAuthMode();
-    }
-
     window.togglePassword = (fieldId, toggleButton) => {
         const passwordField = document.getElementById(fieldId);
         const icon = toggleButton.querySelector('i');
@@ -192,6 +186,12 @@ document.addEventListener('DOMContentLoaded', () => {
             switchBtn.textContent = 'Sign in';
         }
     };
+
+    // Check URL param to auto-switch to signup
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('mode') === 'signup') {
+        switchAuthMode();
+    }
 
     const showLoading = (isLoading) => loadingSpinner.classList.toggle('hidden', !isLoading);
     const hideMessages = () => {

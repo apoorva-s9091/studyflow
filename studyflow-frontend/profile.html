@@ -6,8 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Profile - StudyFlow</title>
     <link rel="stylesheet" href="css/index2.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+        <style>
+        * { font-family: 'Plus Jakarta Sans', sans-serif !important; }
+        .page-main-content { margin-left: 240px; }
+        </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
     <!-- Favicon -->
     <link rel="apple-touch-icon" sizes="180x180" href="./favicon_io/apple-touch-icon.png">
@@ -20,29 +23,32 @@
 
 <body>
 
-    <!-- Floating Navigation -->
-    <div class="navbar-container">
-        <nav class="navbar">
-            <div class="nav-container">
-                <a href="index.html" class="nav-logo">
-                    <div class="logo-icon-v5">
-                        <div class="shape1"></div>
-                        <div class="shape2"></div>
-                    </div>
-                    <span>StudyFlow</span>
-                </a>
-                <div class="nav-menu">
-                    <a href="index.html" class="nav-link">Home Page</a>
-                    <a href="app.html" class="nav-link">Dashboard</a>
-                    <a href="parental-control.html" class="nav-link">Parental Controls</a> 
-                    <a href="auth.html">
-                        <button id="logout-btn" class="btn btn-outline-v5" style="margin-left: auto;"><i class="fas fa-sign-out-alt"></i>Logout</button>
-                    </a> 
-                </div>
-                 <!-- Add a mobile menu toggle here if implementing for smaller screens -->
+    <aside style="width:240px;background:#1E1B4B;min-height:100vh;position:fixed;top:0;left:0;display:flex;flex-direction:column;z-index:200;">
+        <a href="home.html" style="padding:24px 20px 20px;display:flex;align-items:center;gap:10px;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:8px;">
+            <div style="width:36px;height:36px;background:#7C3AED;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-size:1rem;flex-shrink:0;"><i class="fas fa-graduation-cap"></i></div>
+            <span style="font-size:1.15rem;font-weight:800;color:white;">StudyFlow</span>
+        </a>
+        <div style="padding:4px 12px;display:flex;flex-direction:column;gap:2px;flex:1;">
+            <a href="home.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:#C4B5FD;font-size:0.88rem;font-weight:600;"><i class="fas fa-home" style="width:18px;"></i> Home</a>
+            <a href="hub.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:#C4B5FD;font-size:0.88rem;font-weight:600;"><i class="fas fa-th-large" style="width:18px;"></i> Hub</a>
+            <a href="hub.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:#C4B5FD;font-size:0.88rem;font-weight:600;"><i class="fas fa-sticky-note" style="width:18px;"></i> Notes</a>
+            <a href="profile.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:#C4B5FD;font-size:0.88rem;font-weight:600;"><i class="fas fa-chart-line" style="width:18px;"></i> Progress</a>
+            <a href="hub.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:#C4B5FD;font-size:0.88rem;font-weight:600;"><i class="fas fa-calendar-alt" style="width:18px;"></i> Task Scheduler</a>
+            <a href="profile.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;background:#7C3AED;color:white;font-size:0.88rem;font-weight:600;"><i class="fas fa-user" style="width:18px;"></i> Profile</a>
+        </div>
+        <div style="padding:12px;border-top:1px solid rgba(255,255,255,0.06);">
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;">
+            <div id="sb-avatar" style="width:34px;height:34px;border-radius:50%;background:#7C3AED;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.85rem;">?</div>
+            <div><div id="sb-name" style="font-size:0.85rem;font-weight:700;color:white;">...</div><div style="font-size:0.72rem;color:#C4B5FD;">Student</div></div>
             </div>
-        </nav>
-    </div>
+            <button onclick="logout()" style="width:100%;margin-top:8px;padding:9px 12px;background:#DC2626;color:white;border:none;border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;gap:8px;justify-content:center;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </aside>
+    <a href="home.html" style="display:inline-flex;align-items:center;gap:8px;padding:16px 24px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;color:#7C3AED;text-decoration:none;font-size:0.88rem;">
+        <i class="fas fa-arrow-left"></i> Back to Home
+    </a>
 
     <!-- Main Content Area -->
     <section class="page-main-content">
@@ -130,6 +136,12 @@
                         <span class="achievement-badge"><i class="fas fa-trophy"></i> Quest Master</span>
                     </div>
                 </div>
+            </div>
+
+            <div style="text-align:center; margin-top:32px;">
+                <button onclick="logout()" style="display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:#DC2626;color:white;border:none;border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:0.9rem;cursor:pointer;">
+                    <i class="fas fa-sign-out-alt"></i> Log Out
+                </button>
             </div>
         </div>
     </section>

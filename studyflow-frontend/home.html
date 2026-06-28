@@ -501,29 +501,20 @@
         <span class="sidebar-logo-text">StudyFlow</span>
     </a>
 
-    <div class="sidebar-section-label">Main</div>
     <nav class="sidebar-nav">
         <a href="home.html" class="nav-link active"><i class="fas fa-home"></i> Home</a>
-        <a href="app.html" class="nav-link"><i class="fas fa-brain"></i> Study & Quiz</a>
         <a href="hub.html" class="nav-link"><i class="fas fa-th-large"></i> Hub</a>
-
-        <div class="sidebar-section-label" style="padding-left:0; margin-top:8px;">Coming Soon</div>
-        <span class="nav-link coming-soon"><i class="fas fa-trophy"></i> Leaderboard <span class="soon-badge">SOON</span></span>
-        <span class="nav-link coming-soon"><i class="fas fa-file-alt"></i> Mock Tests <span class="soon-badge">SOON</span></span>
-        <span class="nav-link coming-soon"><i class="fas fa-calendar-alt"></i> Revision Planner <span class="soon-badge">SOON</span></span>
-        <span class="nav-link coming-soon"><i class="fas fa-chart-bar"></i> Analytics <span class="soon-badge">SOON</span></span>
-        <span class="nav-link coming-soon"><i class="fas fa-comments"></i> Discussions <span class="soon-badge">SOON</span></span>
-
-        <div class="sidebar-section-label" style="padding-left:0; margin-top:8px;">Account</div>
+        <a href="notes.html" class="nav-link"><i class="fas fa-sticky-note"></i> Notes</a>
+        <a href="profile.html" class="nav-link"><i class="fas fa-chart-line"></i> Progress</a>
+        <a href="hub.html#tasks" class="nav-link"><i class="fas fa-calendar-alt"></i> Task Scheduler</a>
         <a href="profile.html" class="nav-link"><i class="fas fa-user"></i> Profile</a>
-        <span class="nav-link coming-soon"><i class="fas fa-cog"></i> Settings <span class="soon-badge">SOON</span></span>
     </nav>
 
     <div class="sidebar-bottom">
         <div class="user-pill">
-            <div class="user-avatar" id="sidebar-avatar">?</div>
+            <div class="user-avatar" id="sb-avatar">?</div>
             <div class="user-info">
-                <div class="user-name" id="sidebar-username">Loading...</div>
+                <div class="user-name" id="sb-name">Loading...</div>
                 <div class="user-tag" id="sidebar-tag">Student</div>
             </div>
         </div>
@@ -550,43 +541,6 @@
 
     <!-- PAGE CONTENT -->
     <main class="page-content">
-
-        <!-- Quick Actions -->
-        <div class="section-header" style="margin-bottom:16px;">
-            <div>
-                <div class="section-title">Quick Actions</div>
-            </div>
-        </div>
-        <div class="quick-actions">
-            <a href="app.html" class="quick-card">
-                <div class="quick-icon" style="background:#EDE9FE; color:#7C3AED;"><i class="fas fa-brain"></i></div>
-                <div>
-                    <div class="quick-label">Start Quiz</div>
-                    <div class="quick-desc">Adaptive questions</div>
-                </div>
-            </a>
-            <a href="hub.html" class="quick-card">
-                <div class="quick-icon" style="background:#DCFCE7; color:#059669;"><i class="fas fa-check-square"></i></div>
-                <div>
-                    <div class="quick-label">My Tasks</div>
-                    <div class="quick-desc">Todos & Pomodoro</div>
-                </div>
-            </a>
-            <a href="hub.html#notes" class="quick-card">
-                <div class="quick-icon" style="background:#FEF3C7; color:#D97706;"><i class="fas fa-sticky-note"></i></div>
-                <div>
-                    <div class="quick-label">My Notes</div>
-                    <div class="quick-desc">Quick reference</div>
-                </div>
-            </a>
-            <a href="profile.html" class="quick-card">
-                <div class="quick-icon" style="background:#DBEAFE; color:#2563EB;"><i class="fas fa-chart-line"></i></div>
-                <div>
-                    <div class="quick-label">My Progress</div>
-                    <div class="quick-desc">XP & achievements</div>
-                </div>
-            </a>
-        </div>
 
         <!-- My Subjects -->
         <div class="section-header">
@@ -652,8 +606,8 @@
 
     // Sidebar user
     const uname = username || 'Learner';
-    document.getElementById('sidebar-username').textContent = uname;
-    document.getElementById('sidebar-avatar').textContent = uname[0].toUpperCase();
+    document.getElementById('sb-name').textContent = uname;
+    document.getElementById('sb-avatar').textContent = uname[0].toUpperCase();
 
     // Sidebar tag from onboarding
     const catLabels = { school: 'School Student', college: 'College Student', competitive: 'Competitive Prep' };
@@ -757,7 +711,8 @@
     function logout() {
         localStorage.removeItem('studyflowToken');
         localStorage.removeItem('username');
-        window.location.href = 'index.html';
+        localStorage.removeItem('sf_onboarding');
+        window.location.href = 'auth.html';
     }
 
     // Init

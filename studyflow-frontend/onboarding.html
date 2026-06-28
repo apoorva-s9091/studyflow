@@ -416,6 +416,10 @@
     let selectedSubcategory = null;
     let selectedSubjects = [];
 
+    if (!localStorage.getItem('studyflowToken')) {
+        window.location.href = 'auth.html';
+    }
+
     // Check if already onboarded
     const existing = localStorage.getItem('sf_onboarding');
     if (existing) {

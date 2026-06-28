@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const logout = () => {
         localStorage.removeItem('studyflowToken');
         localStorage.removeItem('username');
-        window.location.href = 'index.html';
+        window.location.href = 'home.html';
     };
 
     const apiFetch = async (endpoint, options = {}) => {
@@ -251,4 +251,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Initial Load ---
     applyAccessibilitySettings();
     loadInitialData();
+
+    const sbName = localStorage.getItem('username') || '?';
+    const sbAv = document.getElementById('sb-avatar');
+    const sbNm = document.getElementById('sb-name');
+    if(sbAv) { sbAv.textContent = sbName[0].toUpperCase(); }
+    if(sbNm) { sbNm.textContent = sbName; }
+
+
 });

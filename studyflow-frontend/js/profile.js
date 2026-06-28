@@ -3,6 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+function logout() {
+    localStorage.removeItem('studyflowToken');
+    localStorage.removeItem('studyflow_token');
+    localStorage.removeItem('username');
+    window.location.href = 'home.html';
+}
+
+window.logout = logout;
+
 document.addEventListener('DOMContentLoaded', () => {
     // Define the base URL of your deployed API
     const API_BASE_URL = 'http://localhost:8000';
@@ -134,9 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Event Listeners ---
     if (logoutButton) {
         logoutButton.addEventListener('click', () => {
-            // Clear user token and redirect to login
-            localStorage.removeItem('studyflowToken');
-            window.location.href = 'auth.html';
+            logout();
         });
     }
 
@@ -144,3 +151,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Load initial data from the backend ---
     loadProfileData();
 });
+
+const sbName = localStorage.getItem('username') || '?';
+const sbAv = document.getElementById('sb-avatar');
+const sbNm = document.getElementById('sb-name');
+if(sbAv) sbAv.textContent = sbName[0].toUpperCase();
+if(sbNm) sbNm.textContent = sbName;
+
+window.logout = () => {
+    localStorage.removeItem('studyflowToken');
+    localStorage.removeItem('username');
+    window.location.href = 'home.html';
+};

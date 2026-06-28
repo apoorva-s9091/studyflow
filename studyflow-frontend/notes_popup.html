@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes – StudyFlow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        i.fas, i.far { font-family: "Font Awesome 6 Free" !important; font-weight: 900 !important; }
+        i.fab { font-family: "Font Awesome 6 Brands" !important; font-weight: 400 !important; }
+
+        :root {
+            --accent: #7C3AED;
+            --accent-light: #EDE9FE;
+            --accent-dark: #5B21B6;
+            --success: #059669;
+            --error: #DC2626;
+            --text: #1E1B4B;
+            --text-secondary: #6B7280;
+            --border: #E5E7EB;
+            --bg: #F5F4FB;
+            --font: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            font-family: var(--font);
+            background: white;
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .popup-header {
+            padding: 12px 14px;
+            background: var(--accent);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .popup-logo {
+            width: 24px; height: 24px; border-radius: 6px;
+            background: rgba(255,255,255,0.25);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 0.7rem; flex-shrink: 0;
+        }
+        .popup-name-input {
+            flex: 1; font-family: var(--font);
+            font-size: 0.88rem; font-weight: 700;
+            color: white; background: transparent;
+            border: none; outline: none;
+        }
+        .popup-name-input::placeholder { color: rgba(255,255,255,0.6); }
+        .save-indicator {
+            font-size: 0.7rem; color: rgba(255,255,255,0.8);
+            display: flex; align-items: center; gap: 4px; flex-shrink: 0;
+        }
+        .save-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: #86EFAC; transition: background 0.3s;
+        }
+        .save-dot.saving { background: #FCD34D; }
+
+        /* Toolbar */
+        .popup-toolbar {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 6px;
+            background: #FAFAFA;
+        }
+        .tool-btn {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 5px 10px; border-radius: 6px;
+            font-family: var(--font); font-size: 0.75rem; font-weight: 600;
+            cursor: pointer; border: 1px solid var(--border);
+            background: white; color: var(--text);
+            transition: all 0.15s;
+        }
+        .tool-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .tool-btn.record { border-color: transparent; background: #FEE2E2; color: var(--error); }
+        .tool-btn.record:hover { background: #FECACA; }
+        .tool-btn.recording { background: var(--error); color: white; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.7} }
+
+        .word-count {
+            margin-left: auto; font-size: 0.72rem;
+            color: var(--text-secondary); font-weight: 500;
+        }
+
+        /* Textarea */
+        .popup-body { flex: 1; overflow-y: auto; padding: 14px; }
+        .popup-textarea {
+            width: 100%; height: 100%;
+            font-family: var(--font); font-size: 0.88rem;
+            color: var(--text); line-height: 1.75;
+            border: none; outline: none; resize: none;
+            background: transparent;
+        }
+        .popup-textarea::placeholder { color: #C4B5FD; }
+
+        /* Transcript banner */
+        .transcript-banner {
+            padding: 8px 12px;
+            background: #EDE9FE;
+            border-top: 1px solid #DDD6FE;
+            font-size: 0.75rem; color: var(--accent);
+            font-weight: 600; display: none;
+            align-items: center; gap: 6px;
+        }
+        .transcript-banner.visible { display: flex; }
+        .interim-text { color: #9CA3AF; font-style: italic; }
+
+        /* Footer */
+        .popup-footer {
+            padding: 8px 12px;
+            border-top: 1px solid var(--border);
+            background: #FAFAFA;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .footer-tip { font-size: 0.7rem; color: var(--text-secondary); }
+        .btn-save-popup {
+            padding: 6px 16px; border-radius: 7px;
+            background: var(--accent); color: white;
+            border: none; font-family: var(--font);
+            font-size: 0.78rem; font-weight: 700;
+            cursor: pointer; transition: background 0.2s;
+        }
+        .btn-save-popup:hover { background: var(--accent-dark); }
+    </style>
+</head>
+<body>
+
+<div class="popup-header">
+    <div class="popup-logo"><i class="fas fa-graduation-cap"></i></div>
+    <input type="text" class="popup-name-input" id="popup-name" placeholder="Project name..." />
+    <div class="save-indicator">
+        <div class="save-dot" id="save-dot"></div>
+        <span id="save-status">Saved</span>
+    </div>
+</div>
+
+<div class="popup-toolbar">
+    <button class="tool-btn record" id="record-btn" onclick="toggleRecording()">
+        <i class="fas fa-microphone"></i> Record
+    </button>
+    <button class="tool-btn" onclick="clearContent()">
+        <i class="fas fa-eraser"></i> Clear
+    </button>
+    <button class="tool-btn" onclick="copyAll()">
+        <i class="fas fa-copy"></i> Copy All
+    </button>
+    <span class="word-count" id="word-count">0 words</span>
+</div>
+
+<div class="transcript-banner" id="transcript-banner">
+    <i class="fas fa-circle" style="color:#DC2626;font-size:0.5rem;"></i>
+    Recording... <span class="interim-text" id="interim-text"></span>
+</div>
+
+<div class="popup-body">
+    <textarea class="popup-textarea" id="popup-textarea"
+        placeholder="Take notes here while you study...&#10;&#10;• Click Record to transcribe your voice&#10;• Content auto-saves every 10 seconds&#10;• Resize this window as needed"></textarea>
+</div>
+
+<div class="popup-footer">
+    <span class="footer-tip">Auto-saves every 10s</span>
+    <button class="btn-save-popup" onclick="saveNote()">Save Now</button>
+</div>
+
+<script>
+    const API = 'http://localhost:8000';
+    const token = localStorage.getItem('studyflowToken');
+    const params = new URLSearchParams(window.location.search);
+    let noteId = params.get('id') || null;
+    const noteName = params.get('name') || 'Untitled';
+
+    document.getElementById('popup-name').value = noteName;
+
+    let recognition = null;
+    let isRecording = false;
+    let finalTranscript = '';
+    let autoSaveTimer = null;
+
+    // Load existing note content
+    async function loadNote() {
+        if (!noteId || !token) return;
+        try {
+            const res = await fetch(`${API}/notes/${noteId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const note = await res.json();
+                document.getElementById('popup-textarea').value = note.content || '';
+                document.getElementById('popup-name').value = note.title || noteName;
+                finalTranscript = note.content || '';
+                updateWordCount();
+            }
+        } catch {}
+    }
+
+    // Save
+    async function saveNote() {
+        if (!token) return;
+        const title = document.getElementById('popup-name').value.trim() || 'Untitled';
+        const content = document.getElementById('popup-textarea').value;
+        setSaveStatus('saving');
+        try {
+            if (noteId) {
+                await fetch(`${API}/notes/${noteId}`, {
+                    method: 'PATCH',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, content })
+                });
+            } else {
+                const res = await fetch(`${API}/notes`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, content, tags: [], color: '#FAFAFE', is_pinned: false })
+                });
+                if (res.ok) {
+                    const created = await res.json();
+                    noteId = created.id;
+                }
+            }
+            setSaveStatus('saved');
+        } catch { setSaveStatus('saved'); }
+    }
+
+    function setSaveStatus(s) {
+        const dot = document.getElementById('save-dot');
+        const label = document.getElementById('save-status');
+        dot.classList.toggle('saving', s === 'saving');
+        label.textContent = s === 'saving' ? 'Saving...' : 'Saved';
+    }
+
+    function updateWordCount() {
+        const text = document.getElementById('popup-textarea').value;
+        const w = text.trim() ? text.trim().split(/\s+/).length : 0;
+        document.getElementById('word-count').textContent = `${w} word${w !== 1 ? 's' : ''}`;
+    }
+
+    document.getElementById('popup-textarea').addEventListener('input', updateWordCount);
+
+    // Auto save
+    autoSaveTimer = setInterval(() => saveNote(), 10000);
+
+    // Recording
+    function toggleRecording() {
+        isRecording ? stopRecording() : startRecording();
+    }
+
+    function startRecording() {
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SR) { alert('Voice recording requires Chrome.'); return; }
+
+        recognition = new SR();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-IN';
+
+        finalTranscript = document.getElementById('popup-textarea').value;
+
+        recognition.onresult = (e) => {
+            let interim = '';
+            for (let i = e.resultIndex; i < e.results.length; i++) {
+                if (e.results[i].isFinal) {
+                    finalTranscript += e.results[i][0].transcript + ' ';
+                } else {
+                    interim = e.results[i][0].transcript;
+                }
+            }
+            document.getElementById('popup-textarea').value = finalTranscript + interim;
+            document.getElementById('interim-text').textContent = interim;
+            updateWordCount();
+        };
+
+        recognition.onerror = stopRecording;
+        recognition.onend = () => { if (isRecording) recognition.start(); };
+        recognition.start();
+
+        isRecording = true;
+        const btn = document.getElementById('record-btn');
+        btn.classList.add('recording');
+        btn.innerHTML = '<i class="fas fa-stop"></i> Stop';
+        document.getElementById('transcript-banner').classList.add('visible');
+    }
+
+    function stopRecording() {
+        if (recognition) { recognition.stop(); recognition = null; }
+        isRecording = false;
+        const btn = document.getElementById('record-btn');
+        btn.classList.remove('recording');
+        btn.innerHTML = '<i class="fas fa-microphone"></i> Record';
+        document.getElementById('transcript-banner').classList.remove('visible');
+        document.getElementById('interim-text').textContent = '';
+    }
+
+    function clearContent() {
+        if (confirm('Clear all content?')) {
+            document.getElementById('popup-textarea').value = '';
+            finalTranscript = '';
+            updateWordCount();
+        }
+    }
+
+    function copyAll() {
+        const text = document.getElementById('popup-textarea').value;
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = event.target.closest('button');
+            btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i> Copy All'; }, 1500);
+        });
+    }
+
+    // Save on close
+    window.addEventListener('visibilitychange', () => {q
+        if (document.visibilityState === 'hidden') saveNote();
+    });
+
+    loadNote();
+</script>
+</body>
+</html>
