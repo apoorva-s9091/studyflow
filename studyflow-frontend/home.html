@@ -546,8 +546,11 @@
         <div class="section-header">
             <div>
                 <div class="section-title">My Subjects</div>
-                <div class="section-subtitle">Click a subject to explore chapters and resources</div>
+                <div class="section-subtitle">Click a subject to explore chapters, or add more below</div>
             </div>
+            <button onclick="openSubjectPicker()" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#7C3AED;color:white;border:none;border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:0.82rem;cursor:pointer;">
+                <i class="fas fa-plus"></i> Add Subject
+            </button>
         </div>
         <div class="subject-grid" id="subject-grid">
             <!-- Loaded by JS -->
@@ -676,6 +679,83 @@
         `).join('');
     }
 
+    // Subject Picker Modal Functions
+    function openSubjectPicker() {
+        const modal = document.getElementById('subject-picker-modal');
+        modal.style.display = 'flex';
+        
+        const { category, subcategory, subjects: selected } = JSON.parse(localStorage.getItem('sf_onboarding'));
+        const allSubjects = STUDYFLOW_CURRICULUM[category]?.subcategories[subcategory]?.subjects || {};
+        const grid = document.getElementById('subject-picker-grid');
+        grid.innerHTML = '';
+
+        Object.entries(allSubjects).forEach(([key, sub]) => {
+            const isSelected = selected.includes(key);
+            const card = document.createElement('div');
+            card.id = `picker-${key}`;
+            card.style.cssText = `display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;border:2px solid ${isSelected ? sub.color : '#E5E7EB'};background:${isSelected ? sub.color + '10' : 'white'};cursor:pointer;transition:all 0.2s;`;
+            card.innerHTML = `
+                <div style="width:32px;height:32px;border-radius:8px;background:${sub.color}18;color:${sub.color};display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0;">
+                    <i class="${sub.icon}"></i>
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:0.82rem;font-weight:700;color:#1E1B4B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${sub.label}</div>
+                    <div style="font-size:0.72rem;color:#6B7280;">${sub.chapters?.length || 0} chapters</div>
+                </div>
+                <div id="picker-check-${key}" style="width:20px;height:20px;border-radius:50%;border:2px solid ${isSelected ? sub.color : '#E5E7EB'};background:${isSelected ? sub.color : 'white'};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:0.65rem;color:white;">
+                    ${isSelected ? '✓' : ''}
+                </div>
+            `;
+            card.onclick = () => toggleSubject(key, sub.color);
+            grid.appendChild(card);
+        });
+    }
+
+    function toggleSubject(key, color) {
+        const onboardingData = JSON.parse(localStorage.getItem('sf_onboarding'));
+        const idx = onboardingData.subjects.indexOf(key);
+        
+        if (idx > -1) {
+            // Remove subject — don't allow removing last one
+            if (onboardingData.subjects.length === 1) {
+                alert('You must keep at least one subject.');
+                return;
+            }
+            onboardingData.subjects.splice(idx, 1);
+        } else {
+            // Add subject
+            onboardingData.subjects.push(key);
+        }
+        
+        localStorage.setItem('sf_onboarding', JSON.stringify(onboardingData));
+        
+        // Update picker card style instantly
+        const isNowSelected = onboardingData.subjects.includes(key);
+        const card = document.getElementById(`picker-${key}`);
+        const check = document.getElementById(`picker-check-${key}`);
+        card.style.border = `2px solid ${isNowSelected ? color : '#E5E7EB'}`;
+        card.style.background = isNowSelected ? color + '10' : 'white';
+        check.style.border = `2px solid ${isNowSelected ? color : '#E5E7EB'}`;
+        check.style.background = isNowSelected ? color : 'white';
+        check.textContent = isNowSelected ? '✓' : '';
+        
+        // Re-render subject grid on home page instantly
+        const updatedOnboarding = JSON.parse(localStorage.getItem('sf_onboarding'));
+        const { category, subcategory, subjects: selectedKeys } = updatedOnboarding;
+        const subjectData = STUDYFLOW_CURRICULUM[category]?.subcategories[subcategory]?.subjects || {};
+        const grid = document.getElementById('subject-grid');
+        grid.innerHTML = '';
+        selectedKeys.forEach(k => {
+            const sub = subjectData[k];
+            if (!sub) return;
+            renderSubjectCard(grid, k, sub, category, subcategory);
+        });
+    }
+
+    function closeSubjectPicker() {
+        document.getElementById('subject-picker-modal').style.display = 'none';
+    }
+
     // Render subjects from onboarding data
     function renderSubjects() {
         if (!onboarding) return;
@@ -683,29 +763,79 @@
         const subjectData = STUDYFLOW_CURRICULUM[category]?.subcategories[subcategory]?.subjects || {};
         const grid = document.getElementById('subject-grid');
         grid.innerHTML = '';
-
         selectedKeys.forEach(key => {
             const sub = subjectData[key];
             if (!sub) return;
-            const chapterCount = sub.chapters?.length || 0;
-            const card = document.createElement('a');
-            card.className = 'subject-card';
-            card.href = `subject.html?cat=${category}&sub=${subcategory}&subject=${key}`;
-            card.style.setProperty('--subject-color', sub.color || '#7C3AED');
-            card.innerHTML = `
+            renderSubjectCard(grid, key, sub, category, subcategory);
+        });
+    }
+
+    function renderSubjectCard(grid, key, sub, category, subcategory) {
+        const chapterCount = sub.chapters?.length || 0;
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = 'display:flex;flex-direction:column;';
+
+        const card = document.createElement('div');
+        card.className = 'subject-card';
+        card.style.setProperty('--subject-color', sub.color || '#7C3AED');
+        card.style.cursor = 'pointer';
+        card.innerHTML = `
+            <div style="display:flex;align-items:center;gap:12px;">
                 <div class="subject-icon-wrap" style="background:${sub.color}18; color:${sub.color}">
                     <i class="${sub.icon}"></i>
                 </div>
-                <div>
+                <div style="flex:1;">
                     <div class="subject-name">${sub.label}</div>
                     <div class="subject-chapters">${chapterCount} chapters</div>
                 </div>
-                <div class="subject-progress-bar">
-                    <div class="subject-progress-fill" style="background:${sub.color}; width:0%"></div>
+                <div id="arrow-${key}" style="color:${sub.color};font-size:0.8rem;transition:transform 0.25s;">
+                    <i class="fas fa-chevron-down"></i>
                 </div>
+            </div>
+            <div class="subject-progress-bar" style="margin-top:12px;">
+                <div class="subject-progress-fill" style="background:${sub.color}; width:0%"></div>
+            </div>
+        `;
+
+        // Chapter accordion
+        const chaptersDiv = document.createElement('div');
+        chaptersDiv.id = `chapters-${key}`;
+        chaptersDiv.style.cssText = 'display:none;background:white;border:1px solid #E5E7EB;border-top:none;border-radius:0 0 16px 16px;overflow:hidden;';
+
+        (sub.chapters || []).forEach((ch, idx) => {
+            const row = document.createElement('a');
+            row.href = `subject.html?cat=${category}&sub=${subcategory}&subject=${key}#ch-${ch.id}`;
+            row.style.cssText = `display:flex;align-items:center;gap:12px;padding:12px 20px;text-decoration:none;color:#1E1B4B;border-bottom:1px solid #F3F4F6;transition:background 0.15s;`;
+            row.onmouseover = () => row.style.background = sub.color + '08';
+            row.onmouseout = () => row.style.background = 'transparent';
+            row.innerHTML = `
+                <div style="width:26px;height:26px;border-radius:8px;background:${sub.color};color:white;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:800;flex-shrink:0;">${idx + 1}</div>
+                <div style="font-size:0.83rem;font-weight:600;flex:1;">${ch.title}</div>
+                <i class="fas fa-arrow-right" style="color:${sub.color};font-size:0.72rem;opacity:0.6;"></i>
             `;
-            grid.appendChild(card);
+            chaptersDiv.appendChild(row);
         });
+
+        // Open full subject link at bottom
+        const viewAll = document.createElement('a');
+        viewAll.href = `subject.html?cat=${category}&sub=${subcategory}&subject=${key}`;
+        viewAll.style.cssText = `display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;font-size:0.78rem;font-weight:700;color:${sub.color};text-decoration:none;background:${sub.color}08;`;
+        viewAll.innerHTML = `<i class="fas fa-book-open"></i> View Full Subject`;
+        chaptersDiv.appendChild(viewAll);
+
+        let isOpen = false;
+        card.onclick = () => {
+            isOpen = !isOpen;
+            chaptersDiv.style.display = isOpen ? 'block' : 'none';
+            const arrow = document.getElementById(`arrow-${key}`);
+            arrow.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+            card.style.borderRadius = isOpen ? '16px 16px 0 0' : '16px';
+            card.style.borderBottom = isOpen ? 'none' : '';
+        };
+
+        wrapper.appendChild(card);
+        wrapper.appendChild(chaptersDiv);
+        grid.appendChild(wrapper);
     }
 
     function logout() {
@@ -721,5 +851,21 @@
     loadQuest();
     loadAchievements();
 </script>
+
+<div id="subject-picker-modal" style="display:none;position:fixed;inset:0;background:rgba(30,27,75,0.4);backdrop-filter:blur(6px);z-index:1000;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:20px;padding:28px;width:90%;max-width:560px;max-height:80vh;overflow-y:auto;position:relative;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+            <div>
+                <div style="font-size:1.05rem;font-weight:800;color:#1E1B4B;">Add or Remove Subjects</div>
+                <div style="font-size:0.78rem;color:#6B7280;margin-top:2px;">Toggle subjects on or off. Changes save instantly.</div>
+            </div>
+            <button onclick="closeSubjectPicker()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:#6B7280;padding:4px;">✕</button>
+        </div>
+        <div id="subject-picker-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;"></div>
+        <div style="margin-top:20px;text-align:right;">
+            <button onclick="closeSubjectPicker()" style="padding:10px 24px;background:#7C3AED;color:white;border:none;border-radius:10px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;">Done</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>

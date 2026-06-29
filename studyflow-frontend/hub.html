@@ -95,11 +95,22 @@
 
         /* Hub Page Layout */
         .hub-main {
-            margin-left: 250px;
+            margin-left: 240px;
             padding: 2rem;
             min-height: 100vh;
             box-sizing: border-box;
         }
+        
+        .hub-tab-btn {
+            display:inline-flex; align-items:center; gap:6px;
+            padding:10px 18px; border:none; background:transparent;
+            font-family:'Plus Jakarta Sans',sans-serif; font-size:0.85rem;
+            font-weight:600; color:#6B7280; cursor:pointer;
+            border-bottom:2px solid transparent; margin-bottom:-2px;
+            transition:all 0.2s; white-space:nowrap;
+        }
+        .hub-tab-btn:hover { color:#7C3AED; }
+        .hub-tab-btn.active { color:#7C3AED; border-bottom-color:#7C3AED; }
 
         .tab-panel {
             display: none;
@@ -875,63 +886,53 @@
 </head>
 <body class="app-body">
 
-    <!-- Sidebar Navigation -->
-    <!-- Unified Sidebar: Version B (hub.html) -->
-    <aside id="sf-sidebar">
-        <!-- scrollable top section -->
-        <div class="sf-sidebar-top">
-            <!-- Logo -->
-            <a href="app.html" class="sf-logo">
-                <span class="sf-logo-icon">📚</span>
-                <span>StudyFlow</span>
-            </a>
-            <!-- Nav -->
-            <nav class="sf-nav">
-                <!-- Home navigates away -->
-                <a class="sf-nav-item" href="app.html">
-                    <i class="fas fa-home"></i> Home
-                </a>
-                <!-- Panel-switching buttons -->
-                <button class="sf-nav-item active" data-panel="hub">
-                    <i class="fas fa-th"></i> Hub
-                </button>
-                <button class="sf-nav-item" data-panel="notes">
-                    <i class="fas fa-sticky-note"></i> Notes
-                </button>
-                <button class="sf-nav-item" data-panel="progress">
-                    <i class="fas fa-chart-line"></i> Progress
-                </button>
-                <button class="sf-nav-item" data-panel="tasks">
-                    <i class="fas fa-calendar-check"></i> Task Scheduler
-                </button>
-                <button class="sf-nav-item" data-panel="pomodoro">
-                    <i class="fas fa-clock"></i> Pomodoro
-                </button>
-                <button class="sf-nav-item" data-panel="goals">
-                    <i class="fas fa-bullseye"></i> Goals
-                </button>
-                <button class="sf-nav-item" data-panel="profile">
-                    <i class="fas fa-user"></i> Profile
-                </button>
-            </nav>
+<aside style="width:240px;background:#1E1B4B;min-height:100vh;position:fixed;top:0;left:0;display:flex;flex-direction:column;z-index:200;">
+    <a href="home.html" style="padding:24px 20px 20px;display:flex;align-items:center;gap:10px;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:8px;">
+        <div style="width:36px;height:36px;background:#7C3AED;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-size:1rem;flex-shrink:0;"><i class="fas fa-graduation-cap"></i></div>
+        <span style="font-size:1.15rem;font-weight:800;color:white;">StudyFlow</span>
+    </a>
+    <div style="padding:4px 12px;display:flex;flex-direction:column;gap:2px;flex:1;">
+        <a href="home.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:#C4B5FD;font-size:0.88rem;font-weight:600;"><i class="fas fa-home" style="width:18px;"></i> Home</a>
+        <a href="hub.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;background:#7C3AED;color:white;font-size:0.88rem;font-weight:600;"><i class="fas fa-th-large" style="width:18px;"></i> Hub</a>
+        <a href="notes.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:#C4B5FD;font-size:0.88rem;font-weight:600;"><i class="fas fa-sticky-note" style="width:18px;"></i> Notes</a>
+        <a href="profile.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:#C4B5FD;font-size:0.88rem;font-weight:600;"><i class="fas fa-chart-line" style="width:18px;"></i> Progress</a>
+        <a href="hub.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:#C4B5FD;font-size:0.88rem;font-weight:600;"><i class="fas fa-calendar-alt" style="width:18px;"></i> Task Scheduler</a>
+        <a href="profile.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:#C4B5FD;font-size:0.88rem;font-weight:600;"><i class="fas fa-user" style="width:18px;"></i> Profile</a>
+    </div>
+    <div style="padding:12px;border-top:1px solid rgba(255,255,255,0.06);">
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;">
+            <div id="sb-avatar" style="width:34px;height:34px;border-radius:50%;background:#7C3AED;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.85rem;">?</div>
+            <div><div id="sb-name" style="font-size:0.85rem;font-weight:700;color:white;">...</div><div style="font-size:0.72rem;color:#C4B5FD;">Student</div></div>
         </div>
-        <!-- fixed bottom user chip -->
-        <div class="sf-sidebar-bottom">
-            <div class="sf-user-chip">
-                <div id="sb-avatar" class="sf-avatar">?</div>
-                <div>
-                    <div id="sb-name" class="sf-username">...</div>
-                    <div class="sf-role">Student</div>
-                </div>
-            </div>
-            <button onclick="logoutUser()" id="logout-btn" class="sf-logout-btn">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </button>
-        </div>
-    </aside>
+        <button onclick="logoutUser()" style="width:100%;margin-top:8px;padding:9px 12px;background:#DC2626;color:white;border:none;border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;gap:8px;justify-content:center;">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+    </div>
+</aside>
 
     <!-- Main Content Area -->
     <main class="hub-main">
+
+        <div style="display:flex;gap:8px;margin-bottom:28px;border-bottom:2px solid #E5E7EB;padding-bottom:0;overflow-x:auto;">
+            <button class="hub-tab-btn active" data-panel="todos-tab" onclick="switchHubTab(this,'todos-tab')">
+                <i class="fas fa-tasks"></i> Tasks
+            </button>
+            <button class="hub-tab-btn" data-panel="notes-tab" onclick="switchHubTab(this,'notes-tab')">
+                <i class="fas fa-sticky-note"></i> Notes
+            </button>
+            <button class="hub-tab-btn" data-panel="pomodoro-tab" onclick="switchHubTab(this,'pomodoro-tab')">
+                <i class="fas fa-clock"></i> Pomodoro
+            </button>
+            <button class="hub-tab-btn" data-panel="goals-tab" onclick="switchHubTab(this,'goals-tab')">
+                <i class="fas fa-bullseye"></i> Goals
+            </button>
+            <button class="hub-tab-btn" data-panel="progress-tab" onclick="switchHubTab(this,'progress-tab')">
+                <i class="fas fa-chart-line"></i> Progress
+            </button>
+            <button class="hub-tab-btn" data-panel="scheduler-tab" onclick="switchHubTab(this,'scheduler-tab')">
+                <i class="fas fa-robot"></i> AI Planner
+            </button>
+        </div>
 
         <!-- TODOS PANEL -->
         <section id="todos-tab" class="tab-panel active">
@@ -1386,7 +1387,8 @@
             localStorage.removeItem('studyflowToken');
             localStorage.removeItem('studyflow_token');
             localStorage.removeItem('username');
-            window.location.href = 'home.html';
+            localStorage.removeItem('sf_onboarding');
+            window.location.href = 'auth.html';
         }
 
         // Generic API fetch wrapper
@@ -1521,35 +1523,6 @@
                 console.error("Failed to load user profile on startup", err);
             }
 
-            // Wire tabs switching
-            const tabs = document.querySelectorAll('.header-tabs .tab-btn');
-            tabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    const targetTab = tab.getAttribute('data-tab');
-                    
-                    tabs.forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-                    
-                    document.querySelectorAll('.tab-panel').forEach(panel => {
-                        panel.classList.remove('active');
-                    });
-                    
-                    const activePanel = document.getElementById(targetTab);
-                    activePanel.classList.add('active');
-                    
-                    // Route tab-specific loading
-                    if (targetTab === 'todos-tab') {
-                        loadTodos();
-                    } else if (targetTab === 'notes-tab') {
-                        loadNotes();
-                    } else if (targetTab === 'pomodoro-tab') {
-                        loadPomodoroTab();
-                    } else if (targetTab === 'goals-tab') {
-                        loadGoals();
-                    }
-                });
-            });
-
             // Wire Note Card color dots
             document.querySelectorAll('#note-color-palette .color-dot').forEach(dot => {
                 dot.addEventListener('click', () => {
@@ -1571,50 +1544,8 @@
                 });
             });
 
-            // Wire the new unified sidebar data-panel buttons
-            const panelMap = {
-                hub:      'todos-tab',
-                notes:    'notes-tab',
-                progress: 'progress-tab',
-                tasks:    'scheduler-tab',
-                pomodoro: 'pomodoro-tab',
-                goals:    'goals-tab',
-                profile:  'profile-tab'
-            };
-
-            function activateSidebarBtn(panelKey) {
-                document.querySelectorAll('.sf-nav-item[data-panel]').forEach(btn => {
-                    const isActive = btn.dataset.panel === panelKey;
-                    btn.style.background = isActive ? '#7C3AED' : 'transparent';
-                    btn.style.color = isActive ? '#fff' : 'rgba(255,255,255,0.55)';
-                    btn.style.fontWeight = isActive ? '600' : '500';
-                });
-            }
-
-            document.querySelectorAll('.sf-nav-item[data-panel]').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const panelKey = btn.dataset.panel;
-                    const panelId = panelMap[panelKey];
-                    if (!panelId) return;
-                    activateSidebarBtn(panelKey);
-                    // Re-use existing switchSidebarTab which handles panel show/hide + data loading
-                    switchSidebarTab(panelId, null);
-                    // Update URL hash without page reload
-                    history.replaceState(null, '', '#' + panelKey);
-                });
-            });
-
-            // Hash-based panel routing on load (e.g. arriving from hub.html#pomodoro)
-            const hash = window.location.hash.replace('#', '');
-            const validHashes = Object.keys(panelMap);
-            if (hash && validHashes.includes(hash)) {
-                activateSidebarBtn(hash);
-                switchSidebarTab(panelMap[hash], null);
-            } else {
-                // Default: Hub (todos) panel
-                activateSidebarBtn('hub');
-                loadTodos();
-            }
+            // Initialize with todos panel
+            loadTodos();
         });
 
 
@@ -2396,28 +2327,11 @@
         // ============================================================
         // SIDEBAR NAVIGATION — switches panels without page reload
         // ============================================================
-        function switchSidebarTab(panelId, clickedLink) {
-            // Deactivate all panels
+        function switchHubTab(btn, panelId) {
+            document.querySelectorAll('.hub-tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
             document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-            const targetPanel = document.getElementById(panelId);
-            if (targetPanel) targetPanel.classList.add('active');
-
-            // Update sidebar link highlight
-            document.querySelectorAll('.sb-nav-link').forEach(a => {
-                a.style.background = 'transparent';
-                a.style.color = '#C4B5FD';
-            });
-            if (clickedLink) {
-                clickedLink.style.background = '#7C3AED';
-                clickedLink.style.color = 'white';
-            }
-
-            // Also sync header tabs if present
-            document.querySelectorAll('.header-tabs .tab-btn').forEach(t => t.classList.remove('active'));
-            const matchingHeaderTab = document.querySelector(`.tab-btn[data-tab="${panelId}"]`);
-            if (matchingHeaderTab) matchingHeaderTab.classList.add('active');
-
-            // Trigger data loading for the panel
+            document.getElementById(panelId).classList.add('active');
             if (panelId === 'todos-tab') loadTodos();
             else if (panelId === 'notes-tab') loadNotes();
             else if (panelId === 'pomodoro-tab') loadPomodoroTab();

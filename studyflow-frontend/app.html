@@ -398,8 +398,33 @@
 
 <body class="app-body">
 
+    <!-- SIDEBAR -->
+    <aside style="width:240px;background:#1E1B4B;min-height:100vh;position:fixed;top:0;left:0;display:flex;flex-direction:column;z-index:200;">
+        <a href="home.html" style="padding:24px 20px 20px;display:flex;align-items:center;gap:10px;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:8px;">
+            <div style="width:36px;height:36px;background:#7C3AED;border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-size:1rem;flex-shrink:0;"><i class="fas fa-graduation-cap"></i></div>
+            <span style="font-size:1.15rem;font-weight:800;color:white;">StudyFlow</span>
+        </a>
+        <div style="padding:4px 12px;display:flex;flex-direction:column;gap:2px;flex:1;">
+            <a href="home.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:#C4B5FD;font-size:0.88rem;font-weight:600;"><i class="fas fa-home" style="width:18px;"></i> Home</a>
+            <a href="hub.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:#C4B5FD;font-size:0.88rem;font-weight:600;"><i class="fas fa-th-large" style="width:18px;"></i> Hub</a>
+            <a href="notes.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:#C4B5FD;font-size:0.88rem;font-weight:600;"><i class="fas fa-sticky-note" style="width:18px;"></i> Notes</a>
+            <a href="profile.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:#C4B5FD;font-size:0.88rem;font-weight:600;"><i class="fas fa-chart-line" style="width:18px;"></i> Progress</a>
+            <a href="hub.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:#C4B5FD;font-size:0.88rem;font-weight:600;"><i class="fas fa-calendar-alt" style="width:18px;"></i> Task Scheduler</a>
+            <a href="profile.html" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;color:#C4B5FD;font-size:0.88rem;font-weight:600;"><i class="fas fa-user" style="width:18px;"></i> Profile</a>
+        </div>
+        <div style="padding:12px;border-top:1px solid rgba(255,255,255,0.06);">
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;">
+                <div id="sb-avatar" style="width:34px;height:34px;border-radius:50%;background:#7C3AED;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.85rem;">?</div>
+                <div><div id="sb-name" style="font-size:0.85rem;font-weight:700;color:white;">...</div><div style="font-size:0.72rem;color:#C4B5FD;">Student</div></div>
+            </div>
+            <button onclick="logoutApp()" style="width:100%;margin-top:8px;padding:9px 12px;background:#DC2626;color:white;border:none;border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;gap:8px;justify-content:center;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </aside>
+
     <!-- TOP BAR (replaces old navbar-container) -->
-    <header class="app-topbar">
+    <header class="app-topbar" style="margin-left:240px;">
         <a href="index.html" class="app-topbar-logo">📚 StudyFlow</a>
         <div class="app-topbar-right">
             <div class="stat-chip-streak">
@@ -414,7 +439,7 @@
             <a href="profile.html" class="btn btn-outline-v5">
                 <i class="fas fa-user"></i><span class="btn-text">Profile</span>
             </a>
-            <button id="logout-btn" class="btn btn-outline-v5">
+            <button id="logout-btn" class="btn btn-outline-v5" onclick="logoutApp()">
                 <i class="fas fa-sign-out-alt"></i>
                 <span class="btn-text">Logout</span>
             </button>
@@ -422,7 +447,7 @@
     </header>
 
     <!-- Main Content -->
-    <main class="app-main">
+    <main class="app-main" style="margin-left:240px;">
         <!-- Dashboard View -->
         <div id="dashboard-view" class="view active">
             <!-- Greeting -->
@@ -916,7 +941,21 @@
             // Initial sync
             streakTop.textContent = streakMain.textContent;
         }
+
+        // Initialize sidebar with user info
+        const username = localStorage.getItem('username') || 'Learner';
+        const sbName = document.getElementById('sb-name');
+        const sbAvatar = document.getElementById('sb-avatar');
+        if (sbName) sbName.textContent = username;
+        if (sbAvatar) sbAvatar.textContent = username.charAt(0).toUpperCase();
     })();
+
+    function logoutApp() {
+        localStorage.removeItem('studyflowToken');
+        localStorage.removeItem('username');
+        localStorage.removeItem('sf_onboarding');
+        window.location.href = 'auth.html';
+    }
     </script>
 </body>
 
